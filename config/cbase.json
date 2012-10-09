@@ -1,0 +1,99 @@
+{
+	routing: {
+		// GET /
+		// Get information about the server.
+		//
+		"^$": {
+			source: "sources.service"
+		},
+
+		// GET /v/<venue-id>
+		// GET /v/<venue-id>/<machine-id>
+		// Get public information about the venue or one of its children - usually a machine.
+		//
+		"^v/(\\w+)(/(\\w+))?$": {
+			pathArgs: [ "venueId", "", "machineId" ],
+			source: "sources.venue"
+		},
+
+		// POST /s
+		// u=<user-id>
+		// Initiate a session.  Server responds with a session ID and its current salt value.
+		// To complete the creation of the session, the client must POST again to this URL,
+		// this time referencing the session ID and a computed security token.  The security
+		// token is the MD5 hash of the user ID, followed by the user's password, followed by
+		// the current salt value.
+		//
+		// POST /s
+		// s=<session-id>&tok=<security-token>
+		// Complete the creation of a session.
+		// 
+		//
+		"^s$": {
+			chute: "chutes.session"
+		},
+
+		// GET /u/<user-id>?s=<session-id>&tok=<security-token>
+		// Get information about the user, including a list of any in-progress activities.
+		//
+		"^u/(\\w+)$": {
+			pathArgs: [ "userId" ],
+			source: "sources.user"
+		},
+
+		// POST /a
+		// s=<session-id>&tok=<security-token>&m=<machine-id>
+		// Request a new game of the given type and configuration (machine).
+		//
+		"^a$": {
+			chute: "chutes.activity"
+		},
+
+		// GET /a/<activity-id>?s=<session-id>&tok=<security-token>
+		// Get the current state of an activity.
+		//
+		// POST /a/<activity-id>?s=<session-id>&tok=<security-token>
+		// Make a game play.
+		//
+		"^a/(\\w+)$": {
+			pathArgs: [ "activityId" ],
+			source: "sources.activity",
+			chute: "chutes.activity"
+		}
+	},
+
+	sources: {
+
+		service: {
+			_builder: "net.ech.service.ServiceInfoSource"
+		},
+
+		// Source of information concerning a venue: game configurations, accounting keys.
+		venue: {
+			// Environment-specific config should define this.
+		},
+
+		// Source of information concerning users.
+		user: {
+			// Environment-specific config should define this.
+		},
+
+		// Source of information concerning activities in process.
+		activity: {
+			// Environment-specific config should define this.
+		}
+	},
+
+	chutes: {
+
+		// Destination for session creation.
+		session: {
+			// Environment-specific config should define this.
+		},
+
+		// Destination for actions within an activity.
+		activity: {
+			// Environment-specific config should define this.
+		}
+	}
+}

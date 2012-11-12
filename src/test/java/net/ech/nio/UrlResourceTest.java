@@ -36,20 +36,6 @@ public class UrlResourceTest
 	}
 
 	@Test
-	public void testUnknownHost() throws Exception
-	{
-		UrlResource.Config config = new UrlResource.Config("http://gadzooks.swoop.com/files");
-		UrlResource urlResource = new UrlResource(config);
-		try {
-			urlResource.resolve(new Query(""));
-			fail("should not be reached");
-		}
-		catch (IOException e) {
-			assertEquals("http://gadzooks.swoop.com/files: HTTP status 503", e.getMessage());
-		}
-	}
-
-	@Test
 	public void testEmptyPath() throws Exception
 	{
 		UrlResource.Config config = new UrlResource.Config("http://www.google.com");

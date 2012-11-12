@@ -60,6 +60,7 @@ public class FileResource
 			}
 		}
 		catch (IOException e) {
+			// Missing net/ech/nio/mimeTypes.properties?
 		}
 	}
 
@@ -68,21 +69,16 @@ public class FileResource
 		super(config);
 	}
 
-	public File getBase()
-	{
-		return base;
-	}
-
 	@Override
     public ItemHandle resolve(Query query)
         throws IOException
 	{
 		// If path is empty, use last component of base as path.
 		String path = query.getPath();
-		if (path.startsWith("/")) {
-			path = path.substring(1);
-		}
 		File file = path.length() == 0 ? new File(processPath(base.getPath())) : new File(base, processPath(path));
+		if (file.isDirectory()) {
+			throw new IOException(file + ": is directory");
+		}
 		if (!file.canRead()) {
 			throw new FileNotFoundException(file.toString());
 		}
@@ -92,7 +88,7 @@ public class FileResource
 	@Override
 	public String toString()
 	{
-		return "FILE:" + base;
+		return base.getPath();
 	}
 
 	private String processPath(String path)
@@ -138,7 +134,7 @@ public class FileResource
 		@Override
 		public String toString()
 		{
-			return file.toString();
+			return file.getPath();
 		}
 
 		@Override

@@ -12,93 +12,154 @@ import static org.junit.Assert.fail;
 
 public class FileResourceTest
 {
+	private final static String RESOURCES = "src/test/resources/";
+
+	@Test
+	public void testToString() throws Exception
+	{
+		assertEquals("src/test/resources", new FileResource(getFileResourceConfig()).toString());
+	}
+
 	@Test
 	public void testPlainTextFile() throws Exception
 	{
-		testPlainTextFile("test.txt");
+		runTextFileTest(new FileResource(getFileResourceConfig()), "test.txt", "abc\n", RESOURCES + "test.txt");
+		runTextFileTest(new FileResource(getFileResourceConfig()), "not_found.txt", null, RESOURCES + "not_found.txt");
 	}
 
 	@Test
 	public void testUriComponentsOtherThanPathIgnored() throws Exception
 	{
-		testPlainTextFile("file://auth/test.txt#ignored");
-	}
-
-	private void testPlainTextFile(String uriString) throws Exception
-	{
-		Resource resource = getFileResource();
-		Query query = new Query(uriString);
-		ItemHandle itemHandle = resource.resolve(query);
-		assertEquals("src/test/resources/" + query.getPath(), itemHandle.toString());
-		assertTrue(itemHandle.isLatent());
-		assertNotNull(itemHandle.getMetadata());
-		assertEquals("text/plain", itemHandle.getMetadata().getMimeType());
-		assertEquals("UTF-8", itemHandle.getMetadata().getCharacterEncoding());
-		Reader reader = itemHandle.presentReader();
-		assertNotNull(reader);
-		char[] buf = new char[100];
-		int cc = reader.read(buf);
-		assertEquals("abc\n", new String(buf, 0, cc));
+		runTextFileTest(new FileResource(getFileResourceConfig()), "file://auth/test.txt#ignored", "abc\n", RESOURCES + "test.txt");
+		runTextFileTest(new FileResource(getFileResourceConfig()), "file://auth/not_found.txt#ignored", null, RESOURCES + "not_found.txt");
 	}
 
 	@Test
-	public void testFileNotFound() throws Exception
+	public void testImplicitFileExtension() throws Exception
 	{
-		try {
-			Resource resource = getFileResource();
-			Query query = new Query("not_found.txt");
-			resource.resolve(query);
-			fail("should not be reached");
-		}
-		catch (FileNotFoundException e) {
-			// Expected.
-		}
+		FileResource.Config config = getFileResourceConfig();
+		config.setExtension(".txt");
+		runTextFileTest(new FileResource(config), "test", "abc\n", RESOURCES + "test.txt");
+		runTextFileTest(new FileResource(config), "not_found", null, RESOURCES + "not_found.txt");
 	}
 
 	@Test
-	public void testDefaultContentType() throws Exception
+	public void testReplaceFileExtension() throws Exception
 	{
-		ItemHandle itemHandle = getFileResource().resolve(new Query("test.txt"));
-		assertEquals("text/plain", itemHandle.getMetadata().getMimeType());
+		FileResource.Config config = getFileResourceConfig();
+		config.setExtension(".txt");
+		config.setIgnoreQueryExtension(true);
+		runTextFileTest(new FileResource(config), "test.ign", "abc\n", RESOURCES + "test.txt");
+		runTextFileTest(new FileResource(config), "test", "abc\n", RESOURCES + "test.txt");
+		runTextFileTest(new FileResource(config), "not_found.ign", null, RESOURCES + "not_found.txt");
 	}
 
 	@Test
-	public void testJsonContentType() throws Exception
+	public void testFixedMimeType() throws Exception
 	{
-		ItemHandle itemHandle = getFileResource().resolve(new Query("test.json"));
+		FileResource.Config config = getFileResourceConfig();
+		config.setMimeType("text/plain");
+		runTextFileTest(new FileResource(config), "test.css", "abc {\n\ttext-align: center;\n}\n", RESOURCES + "test.css");
+	}
+
+	@Test
+	public void testJsonMimeType() throws Exception
+	{
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.json"));
 		assertEquals("application/json", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
-	public void testJavascriptContentType() throws Exception
+	public void testJavascriptMimeType() throws Exception
 	{
-		ItemHandle itemHandle = getFileResource().resolve(new Query("test.js"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.js"));
 		assertEquals("application/x-javascript", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
-	public void testCssContentType() throws Exception
+	public void testCssMimeType() throws Exception
 	{
-		ItemHandle itemHandle = getFileResource().resolve(new Query("test.css"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.css"));
 		assertEquals("text/css", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
-	public void testGifContentType() throws Exception
+	public void testGifMimeType() throws Exception
 	{
-		ItemHandle itemHandle = getFileResource().resolve(new Query("test.gif"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.gif"));
 		assertEquals("image/gif", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
-	public void testPngContentType() throws Exception
+	public void testPngMimeType() throws Exception
 	{
-		ItemHandle itemHandle = getFileResource().resolve(new Query("test.png"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.png"));
 		assertEquals("image/png", itemHandle.getMetadata().getMimeType());
 	}
-	
-	private Resource getFileResource()
+
+	@Test
+	public void testDefaultMimeType() throws Exception
 	{
-		return new FileResource(new FileResource.Config(new File("src/test/resources/")));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.properties"));
+		assertEquals("text/plain", itemHandle.getMetadata().getMimeType());
+	}
+
+	@Test
+	public void testDefaultMimeType2() throws Exception
+	{
+		runTextFileTest(new FileResource(getFileResourceConfig()), "test", "abc\n", RESOURCES + "test");
+	}
+
+	@Test
+	public void testDirectoryAndEmptyPath() throws Exception
+	{
+		try {
+			new FileResource(getFileResourceConfig()).resolve(new Query(""));
+			fail("should not be reached");
+		}
+		catch (IOException e) {
+			assertEquals("src/test/resources: is directory", e.getMessage());
+		}
+	}
+	
+	private FileResource.Config getFileResourceConfig()
+	{
+		return new FileResource.Config(RESOURCES);
+	}
+
+	private void runTextFileTest(Resource resource, String uriString, String expectedContent, String expectedItemPath)
+		throws Exception
+	{
+		try {
+			Query query = new Query(uriString);
+			ItemHandle itemHandle = resource.resolve(query);
+			if (expectedContent == null) {
+				fail("should not be reached");
+			}
+			else {
+				assertEquals(expectedItemPath, itemHandle.toString());
+				assertTrue(itemHandle.isLatent());
+				assertNotNull(itemHandle.getMetadata());
+				assertEquals("text/plain", itemHandle.getMetadata().getMimeType());
+				assertEquals("UTF-8", itemHandle.getMetadata().getCharacterEncoding());
+				assertFileContent(itemHandle, expectedContent);
+			}
+		}
+		catch (FileNotFoundException e) {
+			if (expectedContent != null) {
+				throw e;
+			}
+			assertEquals(expectedItemPath, e.getMessage());
+		}
+	}
+
+	private void assertFileContent(ItemHandle itemHandle, String expectedContent)
+		throws Exception
+	{
+		Reader reader = itemHandle.presentReader();
+		assertNotNull(reader);
+		char[] buf = new char[100];
+		int cc = reader.read(buf);
+		assertEquals(expectedContent, new String(buf, 0, cc));
 	}
 }

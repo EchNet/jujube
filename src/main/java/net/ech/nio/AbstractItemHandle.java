@@ -46,7 +46,7 @@ public abstract class AbstractItemHandle
     public Metadata getMetadata()
         throws IOException
 	{
-		return new Metadata();
+		throw new RuntimeException("getMetadata not implemented");
 	}
 }
 

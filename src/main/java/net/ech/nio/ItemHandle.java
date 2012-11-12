@@ -5,26 +5,16 @@ import java.io.*;
 public interface ItemHandle
 {
 	/**
-	 * @throws IllegalStateException if this item has already been presented
+	 * @throws IllegalStateException if this handle is no longer latent and a stream has already been opened
 	 */
-    public InputStream presentInputStream()
+    public InputStream openInputStream()
         throws IOException;
 
 	/**
-	 * @throws IllegalStateException if this item has already been presented
+	 * @throws IllegalStateException if this handle is no longer latent and a stream has already been opened
 	 */
-    public Reader presentReader()
+    public Reader openReader()
         throws IOException;
-
-	/**
-	 * @throws IllegalStateException if this item has already been presented
-	 */
-    public Object/*TODO: define Document class */ presentDocument()
-        throws IOException;
-
-	/**
-	 */
-    public boolean isLatent();
 
 	/**
 	 */

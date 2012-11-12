@@ -138,7 +138,6 @@ public class FileResourceTest
 			}
 			else {
 				assertEquals(expectedItemPath, itemHandle.toString());
-				assertTrue(itemHandle.isLatent());
 				assertNotNull(itemHandle.getMetadata());
 				assertEquals("text/plain", itemHandle.getMetadata().getMimeType());
 				assertEquals("UTF-8", itemHandle.getMetadata().getCharacterEncoding());
@@ -156,7 +155,7 @@ public class FileResourceTest
 	private void assertFileContent(ItemHandle itemHandle, String expectedContent)
 		throws Exception
 	{
-		Reader reader = itemHandle.presentReader();
+		Reader reader = itemHandle.openReader();
 		assertNotNull(reader);
 		char[] buf = new char[100];
 		int cc = reader.read(buf);

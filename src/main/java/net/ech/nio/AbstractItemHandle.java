@@ -8,36 +8,19 @@ public abstract class AbstractItemHandle
 	/**
 	 * @inheritDoc
 	 */
-    public InputStream presentInputStream()
+    public InputStream openInputStream()
         throws IOException
 	{
-		throw new RuntimeException("presentInputStream not implemented");
+		throw new RuntimeException("openInputStream not implemented");
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-    public Reader presentReader()
+    public Reader openReader()
         throws IOException
 	{
-		return new InputStreamReader(presentInputStream());
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-    public Object/*TODO: define Document class */ presentDocument()
-        throws IOException
-	{
-		throw new RuntimeException("presentDocument not implemented");
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-    public boolean isLatent()
-	{
-		return true;
+		return new InputStreamReader(openInputStream());
 	}
 
 	/**
@@ -49,4 +32,3 @@ public abstract class AbstractItemHandle
 		throw new RuntimeException("getMetadata not implemented");
 	}
 }
-

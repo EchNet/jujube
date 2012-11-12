@@ -118,17 +118,17 @@ public class FileResource
 		}
 
 		@Override
-		public InputStream presentInputStream()
+		public InputStream openInputStream()
 			throws IOException
 		{
 			return new FileInputStream(file);
 		}
 
 		@Override
-		public Reader presentReader()
+		public Reader openReader()
 			throws IOException
 		{
-			return new InputStreamReader(presentInputStream(), characterEncoding);
+			return new InputStreamReader(openInputStream(), characterEncoding);
 		}
 
 		@Override

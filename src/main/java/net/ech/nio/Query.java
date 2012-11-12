@@ -1,5 +1,6 @@
 package net.ech.nio;
 
+import java.io.*;
 import java.net.*;
 import java.util.*;
 
@@ -41,9 +42,9 @@ public class Query
 
 	public Map<String,Object> getParameters()
 	{
-		Map<String,Object> params = parseQueryString();
+		Map<String,Object> params = parseQueryString(uri.getRawQuery());
 		params.putAll(parameters);
-		return Collections.unmodifiableMap(params);
+		return params;
 	}
 
 	public void putAttribute(String name, Object value)
@@ -84,33 +85,65 @@ public class Query
 		return uri.toString();
 	}
 
-	private Map<String,Object> parseQueryString()
+	public static Map<String,Object> parseQueryString(String rawQueryString)
 	{
-		Map<String,Object> params = new HashMap<String,Object>();
-		for (String paramString : uri.getRawQuery().split("&")) {
-			String name = paramString;
-			String value = "";
-			int eq = name.indexOf('=');
-			if (eq >= 0) {
-				name = name.substring(0, eq);
-				value = paramString.substring(eq + 1);
-			}
-			if (params.containsKey(name)) {
-				Object v = params.get(name);
-				if (v instanceof List) {
-					((List<String>) v).add(value);
+		Map<String,Object> params = new LinkedHashMap<String,Object>();
+		if (rawQueryString != null) {
+			for (String paramString : rawQueryString.split("&")) {
+				String name = paramString;
+				String value = "";
+				int eq = name.indexOf('=');
+				if (eq >= 0) {
+					name = name.substring(0, eq);
+					value = paramString.substring(eq + 1);
+				}
+				if (params.containsKey(name)) {
+					Object v = params.get(name);
+					if (v instanceof List) {
+						((List<String>) v).add(value);
+					}
+					else {
+						List<String> list = new ArrayList<String>();
+						list.add(v.toString());
+						list.add(value);
+						params.put(name, list);
+					}
 				}
 				else {
-					List<String> list = new ArrayList<String>();
-					list.add(v.toString());
-					list.add(value);
-					params.put(name, list);
+					params.put(name, value);
 				}
-			}
-			else {
-				params.put(name, value);
 			}
 		}
 		return params;
+	}
+
+	public static String formQueryString(Map<String,Object> params)
+		throws UnsupportedEncodingException
+	{
+		StringBuilder buf = new StringBuilder();
+
+		for (Map.Entry<String,Object> entry : params.entrySet()) 
+		{
+			String key = entry.getKey();
+			Object value = entry.getValue();
+			if (value == null) {
+				value = "";
+			}
+			List<Object> valueList = (value instanceof List) ? ((List<Object>) value) : Collections.singletonList(value);
+			for (Object v : valueList) {
+				buf.append(buf.length() == 0 ? "?" : "&");
+				buf.append(urlEncode(key));
+				buf.append("=");
+				buf.append(urlEncode(v.toString()));
+			}
+		}
+
+		return buf.toString();
+	}
+
+	private static String urlEncode(String str) 
+		throws UnsupportedEncodingException
+	{
+		return URLEncoder.encode(str, "utf-8");
 	}
 }

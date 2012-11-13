@@ -7,9 +7,9 @@ class FileResourceConfig
 	protected File base;
 	protected String extension;
 	protected boolean ignoreQueryExtension;
-	protected int cachePeriod;
 	protected String mimeType;
 	protected String characterEncoding = FileResource.DEFAULT_CHARACTER_ENCODING;
+	protected Long cachePeriod;
 
 	public FileResourceConfig()
 	{
@@ -23,5 +23,6 @@ class FileResourceConfig
 		this.cachePeriod = that.cachePeriod;
 		this.mimeType = that.mimeType;
 		this.characterEncoding = that.characterEncoding;
+		this.cachePeriod = cachePeriod;
 	}
 }

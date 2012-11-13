@@ -8,6 +8,7 @@ public abstract class AbstractItemHandle
 	/**
 	 * @inheritDoc
 	 */
+	@Override
     public InputStream openInputStream()
         throws IOException
 	{
@@ -17,6 +18,7 @@ public abstract class AbstractItemHandle
 	/**
 	 * @inheritDoc
 	 */
+	@Override
     public Reader openReader()
         throws IOException
 	{
@@ -26,8 +28,8 @@ public abstract class AbstractItemHandle
 	/**
 	 * @inheritDoc
 	 */
+	@Override
     public Metadata getMetadata()
-        throws IOException
 	{
 		throw new RuntimeException("getMetadata not implemented");
 	}

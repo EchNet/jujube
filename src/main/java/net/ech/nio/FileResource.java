@@ -38,6 +38,16 @@ public class FileResource
 		{
 			this.mimeType = mimeType;
 		}
+
+		public void setCharacterEncoding(String characterEncoding)
+		{
+			this.characterEncoding = characterEncoding;
+		}
+
+		public void setCachePeriod(long cachePeriod)
+		{
+			this.cachePeriod = new Long(cachePeriod);
+		}
 	}
 
 	private final static Map<String,String> MIME_TYPES_BY_EXTENSION = new HashMap<String,String>();
@@ -142,16 +152,24 @@ public class FileResource
 		{
 			final String mimeType = getMimeType();
 
-			return new Metadata() {
+			return new AbstractMetadata() {
 
+				@Override
 				public String getMimeType() 
 				{
 					return mimeType;
 				}
 
+				@Override
 				public String getCharacterEncoding()
 				{
 					return characterEncoding;
+				}
+
+				@Override
+				public Long getCachePeriod()
+				{
+					return cachePeriod;
 				}
 			};
 		}

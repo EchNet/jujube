@@ -121,6 +121,43 @@ public class FileResourceTest
 			assertEquals("src/test/resources: is directory", e.getMessage());
 		}
 	}
+
+	@Test
+	public void testNoCacheControlConfiguration() throws Exception
+	{
+		FileResource.Config config = getFileResourceConfig();
+		ItemHandle itemHandle = new FileResource(config).resolve(new Query("test"));
+		assertNotNull(itemHandle.getMetadata());
+		assertNull(itemHandle.getMetadata().getCachePeriod());
+	}
+
+	@Test
+	public void testCacheControlConfiguration() throws Exception
+	{
+		FileResource.Config config = getFileResourceConfig();
+		config.setCachePeriod(1000);
+		ItemHandle itemHandle = new FileResource(config).resolve(new Query("test"));
+		assertNotNull(itemHandle.getMetadata());
+		assertEquals(new Long(1000), itemHandle.getMetadata().getCachePeriod());
+	}
+
+	@Test
+	public void testNoCharacterEncodingConfiguration() throws Exception
+	{
+		FileResource.Config config = getFileResourceConfig();
+		ItemHandle itemHandle = new FileResource(config).resolve(new Query("test"));
+		assertEquals("UTF-8", itemHandle.getMetadata().getCharacterEncoding());
+	}
+
+	@Test
+	public void testCharacterEncodingConfiguration() throws Exception
+	{
+		final String ISO_CHAR = "iso-8859-1";
+		FileResource.Config config = getFileResourceConfig();
+		config.setCharacterEncoding(ISO_CHAR);
+		ItemHandle itemHandle = new FileResource(config).resolve(new Query("test"));
+		assertEquals(ISO_CHAR, itemHandle.getMetadata().getCharacterEncoding());
+	}
 	
 	private FileResource.Config getFileResourceConfig()
 	{
@@ -140,7 +177,6 @@ public class FileResourceTest
 				assertEquals(expectedItemPath, itemHandle.toString());
 				assertNotNull(itemHandle.getMetadata());
 				assertEquals("text/plain", itemHandle.getMetadata().getMimeType());
-				assertEquals("UTF-8", itemHandle.getMetadata().getCharacterEncoding());
 				assertFileContent(itemHandle, expectedContent);
 			}
 		}

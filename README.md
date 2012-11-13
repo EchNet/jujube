@@ -7,3 +7,5 @@ Emphasis on reconfiguration without pause in service, efficient aggregation of b
 
 This is a Java / Maven project.
 
+TODOs:
+implement cache control metadata on URLs.

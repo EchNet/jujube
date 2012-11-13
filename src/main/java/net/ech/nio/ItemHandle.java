@@ -18,8 +18,7 @@ public interface ItemHandle
 
 	/**
 	 */
-    public Metadata getMetadata()
-        throws IOException;
+    public Metadata getMetadata();
 
 	/**
 	 * A human-readable description of this item's source, e.g. a URI.  May not be null.

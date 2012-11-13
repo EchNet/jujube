@@ -102,7 +102,7 @@ public class UrlResource
 		@Override
 		public Metadata getMetadata()
 		{
-			return new Metadata() {
+			return new AbstractMetadata() {
 
 				@Override
 				public String getMimeType()

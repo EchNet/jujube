@@ -1,4 +1,4 @@
-package net.ech.codec;
+package net.ech.nio.csv;
 
 import net.ech.util.*;
 import java.io.*;
@@ -239,21 +239,9 @@ public class CsvCodecTest
 		}
 	}
 
-	@Test
-	public void testEncodeNotImplemented() throws Exception
-	{
-		try {
-			new CsvCodec().encode("", new ByteArrayOutputStream());
-			fail("should not be reached");
-		}
-		catch (IOException e) {
-			assertEquals("net.ech.codec.CsvCodec: encode() not implemented", e.getMessage());
-		}
-	}
-
 	private static Object decode(CsvCodec decoder, String text)
 		throws IOException
 	{
-		return decoder.decode(new ByteArrayInputStream(text.getBytes("UTF-8")));
+		return decoder.decode(new StringReader(text));
 	}
 }

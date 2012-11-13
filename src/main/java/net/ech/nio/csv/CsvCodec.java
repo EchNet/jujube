@@ -1,22 +1,17 @@
-package net.ech.codec;
+package net.ech.nio.csv;
 
+import net.ech.nio.Codec;
 import net.ech.util.DocumentException;
 import java.io.*;
 import java.util.*;
 
 public class CsvCodec
-	extends AbstractTextCodec
 	implements Codec
 {
 	private String[] labels;
 
 	public CsvCodec()
 	{
-	}
-
-	public CsvCodec(String characterEncoding)
-	{
-		super(characterEncoding);
 	}
 
 	public CsvCodec(boolean firstLineContainsLabels)
@@ -37,16 +32,15 @@ public class CsvCodec
 	}
 
 	@Override
-	public String getContentType()
+	public Object decode(Reader reader)
+		throws IOException
 	{
-		return "text/csv";
+		return new Decoder(reader).decode();
 	}
 
 	@Override
-	public Object decode(InputStream input)
-		throws IOException
+	public void encode(Object document, Writer writer)
 	{
-		return new Decoder(new InputStreamReader(input, getCharacterEncoding())).decode();
 	}
 
 	private enum State

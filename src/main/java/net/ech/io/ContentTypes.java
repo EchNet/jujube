@@ -59,9 +59,6 @@ public abstract class ContentTypes
 		if (contentType == null) {
 			contentType = TEXT_CONTENT_TYPE;
 		}
-		if (isCsv(contentType)) {
-			return charSet == null ? new CsvCodec() : new CsvCodec(charSet);
-		}
 		if (isJson(contentType)) {
 			return charSet == null ? new JsonCodec() : new JsonCodec(charSet);
 		}

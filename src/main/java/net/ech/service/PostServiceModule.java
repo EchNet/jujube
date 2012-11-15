@@ -8,13 +8,8 @@ public class PostServiceModule
 	extends AbstractServiceModule
 	implements ServiceModule
 {
-	public PostServiceModule(ServiceContext serviceContext)
-	{
-		super(serviceContext);
-	}
-
 	@Override
-	public void serviceStarted()
+	public void process()
 	{
 	}
 }

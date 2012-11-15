@@ -6,11 +6,11 @@
    version="2.5">
 
   <servlet>
-    <servlet-name>routing</servlet-name>
+    <servlet-name>hub</servlet-name>
     <servlet-class>net.ech.service.HubServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>routing</servlet-name>
+    <servlet-name>hub</servlet-name>
     <url-pattern>/*</url-pattern>
   </servlet-mapping>
 

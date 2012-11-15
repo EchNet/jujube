@@ -8,7 +8,7 @@ public class ProxyServiceContext
 {
 	private ServiceContext inner;
 
-	public ProxyServiceContext(ServiceContext inner)
+	public void setInner(ServiceContext inner)
 	{
 		this.inner = inner;
 	}

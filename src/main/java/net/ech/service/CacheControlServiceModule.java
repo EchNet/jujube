@@ -11,12 +11,8 @@ public class CacheControlServiceModule
 	public final static long MIN_CACHE_PERIOD = 0;
 	public final static long MAX_CACHE_PERIOD = (long) (5 * 365.25 * 24 * 60 * 60);  // 5 years, in seconds
 
-	public CacheControlServiceModule(ServiceContext serviceContext)
-	{
-		super(serviceContext);
-	}
-
-	public void gotResponseContent()
+	@Override
+	public void process()
 	{
 		if ("GET".equals(getRequest().getMethod()) &&
 			hasCacheControl(getContentItemHandle())) {

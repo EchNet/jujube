@@ -8,13 +8,8 @@ public class GetServiceModule
 	extends AbstractServiceModule
 	implements ServiceModule
 {
-	public GetServiceModule(ServiceContext serviceContext)
-	{
-		super(serviceContext);
-	}
-
 	@Override
-	public void serviceStarted()
+	public void process()
 	{
 	}
 }

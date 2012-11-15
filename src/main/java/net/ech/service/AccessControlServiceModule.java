@@ -4,13 +4,8 @@ public class AccessControlServiceModule
 	extends AbstractServiceModule
 	implements ServiceModule
 {
-	public AccessControlServiceModule(ServiceContext context)
-	{
-		super(context);
-	}
-
 	@Override
-	public void serviceStarted()
+	public void preprocess()
 	{
         getResponse().addHeader("Access-Control-Allow-Origin", "*");
 

@@ -1,0 +1,23 @@
+{
+	service: {
+		modules: [{
+			method: "GET",
+			module: {
+				"$class": "net.ech.service.GetResourceServiceModule",
+				resource: {
+					"$class": "net.ech.nio.FileResource",
+					"$cons": "http://www.swoop.com"
+				}
+			}
+		},{
+			module: {
+				"$class": "net.ech.service.AccessControlServiceModule"
+			}
+		},{
+			method: "GET",
+			module: {
+				"$class": "net.ech.service.AccessControlServiceModule"
+			}
+		}]
+	}
+}

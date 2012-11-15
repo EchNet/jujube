@@ -8,13 +8,8 @@ public class ContentServiceModule
 	extends AbstractServiceModule
 	implements ServiceModule
 {
-	public ContentServiceModule(ServiceContext serviceContext)
-	{
-		super(serviceContext);
-	}
-
 	@Override
-	public void contentReady()
+	public void postprocess()
 	{
 		String mimeType = getMimeType();
 		if (mimeType != null) {

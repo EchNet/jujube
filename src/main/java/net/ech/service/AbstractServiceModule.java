@@ -4,23 +4,24 @@ public class AbstractServiceModule
 	extends ProxyServiceContext
 	implements ServiceModule
 {
-	public AbstractServiceModule(ServiceContext context)
+	@Override
+	public void setServiceContext(ServiceContext context)
 	{
-		super(context);
+		setInner(context);
 	}
 
 	@Override
-	public void serviceStarted()
-	{
-	}
-
-	@Override
-	public void contentReceived()
+	public void preprocess()
 	{
 	}
 
 	@Override
-	public void contentReady()
+	public void process()
+	{
+	}
+
+	@Override
+	public void postprocess()
 	{
 	}
 }

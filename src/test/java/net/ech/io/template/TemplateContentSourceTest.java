@@ -1,7 +1,6 @@
 package net.ech.io.template;
 
 import net.ech.codec.*;
-import net.ech.config.*;
 import net.ech.io.*;
 import net.ech.util.*;
 import java.io.*;

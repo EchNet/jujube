@@ -110,7 +110,7 @@ public class FileResource
 				path = path.substring(0, dot);
 			}
 		}
-		if (extension != null) {
+		if (extension != null && !path.endsWith(extension)) {
 			path += extension;
 		}
 		return path;

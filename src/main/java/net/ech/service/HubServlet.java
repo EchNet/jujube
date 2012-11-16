@@ -3,6 +3,7 @@ package net.ech.service;
 import net.ech.config.Whence;
 import net.ech.nio.ItemHandle;
 import net.ech.nio.json.JsonCodec;
+import net.ech.util.StrongReference;
 import java.io.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
@@ -18,6 +19,7 @@ public class HubServlet
 	public void service(final HttpServletRequest request, final HttpServletResponse response)
     {
 		long startTime = System.currentTimeMillis();
+		final StrongReference<ItemHandle> contentItemRef = new StrongReference<ItemHandle>();
 
 		try {
 			ServiceDefinition serviceDefinition = getServiceDefinition();
@@ -46,17 +48,13 @@ public class HubServlet
 				}
 
 				@Override
-				public ItemHandle getContentItemHandle()
-				{
-					return contentItemHandle;
-				}
-
 				public void submitContent(ItemHandle contentItemHandle)
 					throws ServletException
 				{
-					if (contentItemHandle != null) {
-						throw new ServletException("");
+					if (contentItemRef.get() != null) {
+						throw new ServletException("service configuration error: multiple content submissions");
 					}
+					contentItemRef.set(contentItemHandle);
 				}
 			};
 
@@ -64,15 +62,14 @@ public class HubServlet
 
 			for (ServiceModule serviceModule : serviceModules) {
 				serviceModule.setServiceContext(serviceContext);
-			}
-			for (ServiceModule serviceModule : serviceModules) {
 				serviceModule.preprocess();
 			}
-			for (ServiceModule serviceModule : serviceModules) {
-				serviceModule.process();
-			}
-			for (ServiceModule serviceModule : serviceModules) {
-				serviceModule.postprocess();
+
+			if (contentItemRef.get() != null) {
+				for (ServiceModule serviceModule : serviceModules) {
+					serviceModule.postprocess(contentItemRef.get());
+				}
+				moveContent(contentItemRef.get(), serviceContext);
 			}
 		}
 		catch (FileNotFoundException e) {
@@ -80,7 +77,7 @@ public class HubServlet
 		}
 		catch (Exception e) {
 			sendError(response, 500, "server error");
-			// TODO: log it.
+			logError(e);
 		}
 	}
 
@@ -91,11 +88,19 @@ public class HubServlet
 			synchronized (this) {
 				if (serviceDefinition == null) {
 					Object document = new JsonCodec().decode(new BufferedReader(new FileReader(SERVICE_CONFIG)));
-					serviceDefinition = new Whence(document).pull("$service", ServiceDefinition.class);
+					serviceDefinition = new Whence(document).pull("service", ServiceDefinition.class);
 				}
 			}
 		}
 		return serviceDefinition;
+	}
+
+	private void moveContent(ItemHandle item, ServiceContext serviceContext)
+		throws IOException
+	{
+		ContentServiceModule csModule = new ContentServiceModule();
+		csModule.setServiceContext(serviceContext);
+		csModule.postprocess(item);
 	}
 
 	private void sendError(HttpServletResponse response, int statusCode, String message)
@@ -104,6 +109,23 @@ public class HubServlet
 			response.sendError(statusCode, message);
 		}
 		catch (IOException ignore) {
+		}
+	}
+
+	private void logError(Exception error)
+	{
+		try {
+			// TODO: implement real logging
+			PrintWriter log = new PrintWriter(new BufferedWriter(new FileWriter("error.log", true)));
+			try {
+				log.write("*****\n" + new java.util.Date().toString() + "\n-\n");
+				error.printStackTrace(log);
+			}
+			finally {
+				log.close();
+			}
+		}
+		catch (IOException e) {
 		}
 	}
 }

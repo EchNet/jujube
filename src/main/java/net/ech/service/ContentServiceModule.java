@@ -9,9 +9,9 @@ public class ContentServiceModule
 	implements ServiceModule
 {
 	@Override
-	public void postprocess()
+	public void postprocess(ItemHandle contentItemHandle)
 	{
-		String mimeType = getMimeType();
+		String mimeType = getMimeType(contentItemHandle);
 		if (mimeType != null) {
 			getResponse().setContentType(mimeType);
 		}
@@ -19,29 +19,29 @@ public class ContentServiceModule
 		try {
 			if (isText(mimeType)) {
 
-				String characterEncoding = getCharacterEncoding();
+				String characterEncoding = getCharacterEncoding(contentItemHandle);
 				if (characterEncoding != null) {
 					getResponse().setCharacterEncoding(characterEncoding);
 				}
-				transferText();
+				transferText(contentItemHandle);
 			}
 			else {
-				transferBinary();
+				transferBinary(contentItemHandle);
 			}
 		}
 		catch (IOException e) {
 		}
 	}
 
-	private String getMimeType()
+	private String getMimeType(ItemHandle contentItemHandle)
 	{
-		Metadata metadata = getContentItemHandle().getMetadata();
+		Metadata metadata = contentItemHandle.getMetadata();
 		return metadata == null ? null : metadata.getMimeType();
 	}
 
-	private String getCharacterEncoding()
+	private String getCharacterEncoding(ItemHandle contentItemHandle)
 	{
-		Metadata metadata = getContentItemHandle().getMetadata();
+		Metadata metadata = contentItemHandle.getMetadata();
 		return metadata == null ? null : metadata.getCharacterEncoding();
 	}
 
@@ -50,23 +50,25 @@ public class ContentServiceModule
 		return false;
 	}
 
-	private void transferText()
+	private void transferText(ItemHandle contentItemHandle)
 		throws IOException
 	{
 		TextPump.Config config = new TextPump.Config();
-		config.setReader(getContentItemHandle().openReader());
+		config.setReader(contentItemHandle.openReader());
 		config.addWriter(getResponse().getWriter());
+		config.setErrorLog(new ErrorLog());
 		TextPump pump = new TextPump(config);
 		pump.run();
 		getResponse().getWriter().flush();
 	}
 
-	private void transferBinary()
+	private void transferBinary(ItemHandle contentItemHandle)
 		throws IOException
 	{
 		BinaryPump.Config config = new BinaryPump.Config();
-		config.setInputStream(getContentItemHandle().openInputStream());
+		config.setInputStream(contentItemHandle.openInputStream());
 		config.addOutputStream(getResponse().getOutputStream());
+		config.setErrorLog(new ErrorLog());
 		BinaryPump pump = new BinaryPump(config);
 		pump.run();
 		getResponse().getOutputStream().flush();

@@ -14,9 +14,13 @@ public class FileResource
 	public static class Config
 		extends FileResourceConfig
 	{
+		public Config()
+		{
+		}
+
 		public Config(String base)
 		{
-			this(new File(base));
+			setBase(base);
 		}
 
 		public Config(File base)
@@ -24,9 +28,24 @@ public class FileResource
 			this.base = base;
 		}
 
+		public void setBase(String base)
+		{
+			this.base = new File(base);
+		}
+
+		public String getBase()
+		{
+			return base.getPath();
+		}
+
 		public void setExtension(String extension)
 		{
 			this.extension = extension;
+		}
+
+		public String getExtension()
+		{
+			return extension;
 		}
 
 		public void setIgnoreQueryExtension(boolean ignoreQueryExtension)
@@ -34,9 +53,19 @@ public class FileResource
 			this.ignoreQueryExtension = ignoreQueryExtension;
 		}
 
+		public boolean getIgnoreQueryExtension()
+		{
+			return ignoreQueryExtension;
+		}
+
 		public void setMimeType(String mimeType)
 		{
 			this.mimeType = mimeType;
+		}
+
+		public String getMimeType()
+		{
+			return mimeType;
 		}
 
 		public void setCharacterEncoding(String characterEncoding)
@@ -44,9 +73,19 @@ public class FileResource
 			this.characterEncoding = characterEncoding;
 		}
 
+		public String getCharacterEncoding()
+		{
+			return characterEncoding;
+		}
+
 		public void setCachePeriod(long cachePeriod)
 		{
 			this.cachePeriod = new Long(cachePeriod);
+		}
+
+		public long getCachePeriod()
+		{
+			return cachePeriod;
 		}
 	}
 

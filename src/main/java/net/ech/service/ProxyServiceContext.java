@@ -1,6 +1,7 @@
 package net.ech.service;
 
 import javax.servlet.http.*;
+import javax.servlet.ServletException;
 import net.ech.nio.ItemHandle;
 
 public class ProxyServiceContext
@@ -28,8 +29,9 @@ public class ProxyServiceContext
 		return inner.getResponse();
 	}
 
-	public ItemHandle getContentItemHandle()
+	public void submitContent(ItemHandle contentItemHandle)
+		throws ServletException
 	{
-		return inner.getContentItemHandle();
+		inner.submitContent(contentItemHandle);
 	}
 }

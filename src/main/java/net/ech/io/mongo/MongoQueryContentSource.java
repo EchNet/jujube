@@ -46,7 +46,7 @@ public class MongoQueryContentSource
 		final String path = getRequestPath(request);
 		final Map<String,Object> parameters = request.getParameters();
 
-		final ObjectRef objRef = new ObjectRef();
+		final StrongReference<Object> objRef = new StrongReference<Object>();
 
 		collection.act(new MongoCollectionAction() {
 			@Override
@@ -64,22 +64,22 @@ public class MongoQueryContentSource
 				DBObject filter = new BasicDBObject();
 				filter.put("versions", 0);
 
-				objRef.setObject(dbc.findOne(q, filter));
+				objRef.set(dbc.findOne(q, filter));
 			}
 		});
 
-		if (objRef.getObject() == null) {
+		if (objRef.get() == null) {
 			throw new FileNotFoundException(request.getPath());
 		}
 
-		return new JsonContentHandle(request.getPath(), objRef.getObject());
+		return new JsonContentHandle(request.getPath(), objRef.get());
 	}
 
 	@Override
 	public Object[] list(final String path)
 		throws IOException
 	{
-		final ObjectRef objRef = new ObjectRef();
+		final StrongReference<Object> objRef = new StrongReference<Object>();
 
 		collection.act(new MongoCollectionAction() {
 			@Override
@@ -96,11 +96,11 @@ public class MongoQueryContentSource
 				DBObject[] listing = dbc.find(q, filter).toArray().toArray(new DBObject[0]);
 				cleanUpListing(listing, idField);
 				sortListing(listing);
-				objRef.setObject(listing);
+				objRef.set(listing);
 			}
 		});
 
-		return (Object[]) objRef.getObject();
+		return (Object[]) objRef.get();
 	}
 
 	private String getRequestPath(ContentRequest request)

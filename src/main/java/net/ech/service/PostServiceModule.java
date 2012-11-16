@@ -9,7 +9,7 @@ public class PostServiceModule
 	implements ServiceModule
 {
 	@Override
-	public void process()
+	public void preprocess()
 	{
 	}
 }

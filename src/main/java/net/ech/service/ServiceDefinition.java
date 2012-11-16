@@ -41,6 +41,11 @@ public class ServiceDefinition
 		this.modules = modules;
 	}
 
+	public Map[] getModules()
+	{
+		return modules;
+	}
+
 	public ServiceModule[] filterServiceModules(HttpServletRequest request)
 		throws IOException
 	{

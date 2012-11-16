@@ -15,15 +15,30 @@ public class UrlResource
 	public static class Config
 		extends UrlResourceConfig
 	{
+		public Config()
+		{
+		}
+
 		public Config(String base)
 			throws MalformedURLException
 		{
-			this(new URL(base));
+			setBase(base);
 		}
 
 		public Config(URL base)
 		{
 			this.base = base;
+		}
+
+		public void setBase(String base)
+			throws MalformedURLException
+		{
+			this.base = new URL(base);
+		}
+
+		public String getBase()
+		{
+			return base == null ? null : base.toString();
 		}
 	}
 

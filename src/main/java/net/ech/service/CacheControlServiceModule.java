@@ -12,15 +12,15 @@ public class CacheControlServiceModule
 	public final static long MAX_CACHE_PERIOD = (long) (5 * 365.25 * 24 * 60 * 60);  // 5 years, in seconds
 
 	@Override
-	public void process()
+	public void postprocess(ItemHandle contentItemHandle)
 	{
 		if ("GET".equals(getRequest().getMethod()) &&
-			hasCacheControl(getContentItemHandle())) {
+			hasCacheControl(contentItemHandle)) {
 
 			long date = System.currentTimeMillis();
 			long expires = date;
 			String cacheControl = "no-cache";
-			long cachePeriod = getCachePeriod(getContentItemHandle());
+			long cachePeriod = getCachePeriod(contentItemHandle);
 
 			if (cachePeriod > 0) {
 				expires += cachePeriod * 1000;

@@ -13,7 +13,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jetty.version>8.1.2.v20120308</jetty.version>
     <hub.port>8001</hub.port>
-    <hub.stop.port>9999</hub.stop.port>
+    <hub.stop.port>9001</hub.stop.port>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
   </properties>
 

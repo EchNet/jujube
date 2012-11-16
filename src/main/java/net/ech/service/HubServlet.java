@@ -11,7 +11,7 @@ import javax.servlet.http.*;
 public class HubServlet
 	extends HttpServlet
 {
-	private final static String SERVICE_CONFIG = "refapp/swoop_proxy.json";  // TEMPORARY
+	private final static String SERVICE_CONFIG = "refapp/simple_proxy.json";  // TEMPORARILY HARDWIRED
 
 	private ServiceDefinition serviceDefinition;
 

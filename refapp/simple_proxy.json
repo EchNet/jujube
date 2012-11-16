@@ -5,8 +5,9 @@
 			module: {
 				"$class": "net.ech.service.GetResourceServiceModule",
 				resource: {
-					"$class": "net.ech.nio.FileResource",
-					"$cons": "http://www.swoop.com"
+					"$class": "net.ech.nio.UrlResource",
+					base: "http://ech.net/meregaer/"
+					//base: "http://www.swoop.com"
 				}
 			}
 		},{

@@ -9,7 +9,6 @@ public class UrlResource
 	extends UrlResourceConfig
 	implements Resource
 {
-	public final static String DEFAULT_MIME_TYPE = "text/plain";
 	public final static String DEFAULT_CHARACTER_ENCODING = "UTF-8";
 
 	public static class Config
@@ -170,21 +169,25 @@ public class UrlResource
 		private void setContentType()
 		{
 			mimeType = urlConnection.getContentType();
-			characterEncoding = DEFAULT_CHARACTER_ENCODING;
-
-			int tx = 0;
-			for (String token : mimeType.split(";")) {
-				token = token.trim();
-				switch (tx) {
-				case 0: 
-					mimeType = token;
-					break;
-				default:
-					if (token.startsWith("charset=")) {
-						characterEncoding = token.substring(8);
+			if (mimeType != null) {
+				int tx = 0;
+				for (String token : mimeType.split(";")) {
+					token = token.trim();
+					switch (tx) {
+					case 0: 
+						mimeType = token;
+						break;
+					default:
+						if (token.startsWith("charset=")) {
+							characterEncoding = token.substring(8);
+						}
 					}
+					++tx;
 				}
-				++tx;
+
+				if (characterEncoding == null && MimeType.getMimeType(mimeType).isText()) {
+					characterEncoding = DEFAULT_CHARACTER_ENCODING;
+				}
 			}
 		}
 	}

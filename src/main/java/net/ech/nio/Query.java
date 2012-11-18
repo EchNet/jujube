@@ -3,53 +3,197 @@ package net.ech.nio;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import net.ech.util.KeyValuePair;
 
+/**
+ * A Query, like a URI or URL, consists of a number of components, and may be 
+ * encoded as a String.  Unlike a URI or URL, 
+ *
+ * Class Query offers methods for manipulating the components of the URI beyond
+ * what class URI offers.
+ */
 public class Query
 {
-	private URI uri;
-	private Map<String,Object> parameters;
-	private Map<String,Object> attributes;
+	private String authority;
+	private String path;
+	private List<KeyValuePair<String,String>> parameters;
+	private Map<String,Object> attributes = new HashMap<String,Object>();
 
-	public Query(String uriString)
+	public static Query fromUriString(String uriString)
 		throws URISyntaxException
 	{
-		this(new URI(uriString));
+		URI uri = new URI(uriString);
+		return new Query(
+			uri.getAuthority(),
+			uri.getPath(), 
+			uri.getRawQuery());
 	}
 
-	public Query(URI uri)
+	public static List<KeyValuePair<String,String>> parseQueryString(String rawQueryString)
 	{
-		this(uri, new HashMap<String,Object>(), new HashMap<String,Object>());
+		List<KeyValuePair<String,String>> parameters = new ArrayList<KeyValuePair<String,String>>();
+		if (rawQueryString != null) {
+			if (rawQueryString.startsWith("?")) {
+				rawQueryString = rawQueryString.substring(1);
+			}
+			for (String paramString : rawQueryString.split("&")) {
+				String name = paramString;
+				String value = null;
+				int eq = name.indexOf('=');
+				if (eq >= 0) {
+					name = name.substring(0, eq);
+					value = urlDecode(paramString.substring(eq + 1));
+				}
+				parameters.add(new KeyValuePair<String,String>(urlDecode(name), value));
+			}
+		}
+		return parameters;
 	}
 
-	private Query(URI uri, Map<String,Object> parameters, Map<String,Object> attributes)
+	public static String encodeQueryParameters(List<KeyValuePair<String,String>> parameters)
 	{
-		this.uri = uri;
-		this.parameters = parameters;
-		this.attributes = attributes;
+		StringBuilder buf = new StringBuilder();
+		for (KeyValuePair<String,String> parameter : parameters) {
+			buf.append(buf.length() == 0 ? "?" : "&");
+			buf.append(urlEncode(parameter.key));
+			if (parameter.value != null) {
+				buf.append("=");
+				buf.append(urlEncode(parameter.value));
+			}
+		}
+		return buf.toString();
+	}
+
+	public Query(String authority, String path, String query)
+	{
+		this.authority = authority;
+		setPath(path);
+		this.parameters = parseQueryString(query);
+	}
+
+	public void setAuthority(String authority)
+	{
+		this.authority = authority;
 	}
 
 	public String getAuthority()
 	{
-		return uri.getAuthority();
+		return authority;
+	}
+
+	public void setPath(String path)
+	{
+		if (path != null && path.startsWith("/")) {
+			path = path.substring(1);
+		}
+		this.path = path;
 	}
 
 	public String getPath()
 	{
-		String path = uri.getPath();
-		if (path.startsWith("/")) path = path.substring(1);
 		return path;
 	}
 
-	public Map<String,Object> getParameters()
+	public void setQuery(String query)
 	{
-		Map<String,Object> params = parseQueryString(uri.getRawQuery());
-		params.putAll(parameters);
-		return params;
+		this.parameters = parseQueryString(query);
 	}
 
-	public void putAttribute(String name, Object value)
+	public String getQuery()
 	{
-		attributes.put(name, value);
+		return encodeQueryParameters(this.parameters);
+	}
+
+	public void removeParameter(String key)
+	{
+		Iterator<KeyValuePair<String,String>> parametersIter = parameters.iterator();
+		while (parametersIter.hasNext()) {
+			KeyValuePair<String,String> param = parametersIter.next();
+			if (key.equals(param.key)) {
+				parametersIter.remove();
+			}
+		}
+	}
+
+	public void setParameter(String key, String value)
+	{
+		setParameterValues(key, Collections.singletonList(value));
+	}
+
+	public void setParameterValues(String key, List<String> values)
+	{
+		Iterator<String> valuesIter = values.iterator();
+		Iterator<KeyValuePair<String,String>> parametersIter = parameters.iterator();
+		while (parametersIter.hasNext()) {
+			KeyValuePair<String,String> parameter = parametersIter.next();
+			if (key.equals(parameter.key)) {
+				if (valuesIter.hasNext()) {
+					parameter.value = valuesIter.next();
+				}
+				else {
+					parametersIter.remove();
+				}
+			}
+		}
+		addParameterValues(key, valuesIter);
+	}
+
+	public void addParameter(String key, String value)
+	{
+		parameters.add(new KeyValuePair<String,String>(key, value));
+	}
+
+	public void addParameterValues(String key, List<String> values)
+	{
+		addParameterValues(key, values.iterator());
+	}
+	
+	private void addParameterValues(String key, Iterator<String> valuesIter)
+	{
+		while (valuesIter.hasNext()) {
+			addParameter(key, valuesIter.next());
+		}
+	}
+
+	public List<String> getParameterKeys()
+	{
+		List<String> keys = new ArrayList<String>();
+		Iterator<KeyValuePair<String,String>> parametersIter = parameters.iterator();
+		while (parametersIter.hasNext()) {
+			KeyValuePair<String,String> parameter = parametersIter.next();
+			keys.add(parameter.key);
+		}
+		return keys;
+	}
+
+	public String getParameter(String key)
+	{
+		Iterator<KeyValuePair<String,String>> parametersIter = parameters.iterator();
+		while (parametersIter.hasNext()) {
+			KeyValuePair<String,String> parameter = parametersIter.next();
+			if (key.equals(parameter.key)) {
+				return parameter.value;
+			}
+		}
+		return null;
+	}
+
+	public List<String> getParameterValues(String key)
+	{
+		List<String> values = new ArrayList<String>();
+		Iterator<KeyValuePair<String,String>> parametersIter = parameters.iterator();
+		while (parametersIter.hasNext()) {
+			KeyValuePair<String,String> parameter = parametersIter.next();
+			if (key.equals(parameter.key)) {
+				values.add(parameter.value);
+			}
+		}
+		return values;
+	}
+
+	public void putAttribute(String key, Object value)
+	{
+		attributes.put(key, value);
 	}
 
 	public Object getAttribute(String key)
@@ -62,88 +206,43 @@ public class Query
 		return Collections.unmodifiableMap(attributes);
 	}
 
-	public Query withPath(String path)
-		throws URISyntaxException
-	{
-		return new Query(
-			new URI(uri.getScheme(),
-				uri.getAuthority(), path,
-				uri.getQuery(), uri.getFragment()),
-			parameters,
-			attributes);
-	}
-
-	public Query withParameters(Map<String,Object> parameters)
-	{
-		return new Query(uri, new HashMap<String,Object>(parameters), attributes);
-	}
-
 	@Override
 	public String toString()
 	{
-		// TODO: add parameters
-		return uri.toString();
-	}
-
-	public static Map<String,Object> parseQueryString(String rawQueryString)
-	{
-		Map<String,Object> params = new LinkedHashMap<String,Object>();
-		if (rawQueryString != null) {
-			for (String paramString : rawQueryString.split("&")) {
-				String name = paramString;
-				String value = "";
-				int eq = name.indexOf('=');
-				if (eq >= 0) {
-					name = name.substring(0, eq);
-					value = paramString.substring(eq + 1);
-				}
-				if (params.containsKey(name)) {
-					Object v = params.get(name);
-					if (v instanceof List) {
-						((List<String>) v).add(value);
-					}
-					else {
-						List<String> list = new ArrayList<String>();
-						list.add(v.toString());
-						list.add(value);
-						params.put(name, list);
-					}
-				}
-				else {
-					params.put(name, value);
-				}
-			}
-		}
-		return params;
-	}
-
-	public static String formQueryString(Map<String,Object> params)
-		throws UnsupportedEncodingException
-	{
 		StringBuilder buf = new StringBuilder();
-
-		for (Map.Entry<String,Object> entry : params.entrySet()) 
-		{
-			String key = entry.getKey();
-			Object value = entry.getValue();
-			if (value == null) {
-				value = "";
-			}
-			List<Object> valueList = (value instanceof List) ? ((List<Object>) value) : Collections.singletonList(value);
-			for (Object v : valueList) {
-				buf.append(buf.length() == 0 ? "?" : "&");
-				buf.append(urlEncode(key));
-				buf.append("=");
-				buf.append(urlEncode(v.toString()));
-			}
+		if (authority != null) {
+			buf.append("//");
+			buf.append(authority);
 		}
-
+		if (path != null) {
+			if (buf.length() > 0) {
+				buf.append("/");
+			}
+			buf.append(path);
+		}
+		buf.append(encodeQueryParameters(parameters));
 		return buf.toString();
 	}
 
 	private static String urlEncode(String str) 
-		throws UnsupportedEncodingException
 	{
-		return URLEncoder.encode(str, "utf-8");
+		try {
+			return URLEncoder.encode(str, "utf-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			// Should not be reached.
+			throw new RuntimeException("utf-8 not supported??");
+		}
+	}
+
+	private static String urlDecode(String str) 
+	{
+		try {
+			return URLDecoder.decode(str, "utf-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			// Should not be reached.
+			throw new RuntimeException("utf-8 not supported??");
+		}
 	}
 }

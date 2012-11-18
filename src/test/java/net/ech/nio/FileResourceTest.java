@@ -65,42 +65,42 @@ public class FileResourceTest
 	@Test
 	public void testJsonMimeType() throws Exception
 	{
-		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.json"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(Query.fromUriString("test.json"));
 		assertEquals("application/json", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
 	public void testJavascriptMimeType() throws Exception
 	{
-		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.js"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(Query.fromUriString("test.js"));
 		assertEquals("application/x-javascript", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
 	public void testCssMimeType() throws Exception
 	{
-		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.css"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(Query.fromUriString("test.css"));
 		assertEquals("text/css", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
 	public void testGifMimeType() throws Exception
 	{
-		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.gif"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(Query.fromUriString("test.gif"));
 		assertEquals("image/gif", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
 	public void testPngMimeType() throws Exception
 	{
-		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.png"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(Query.fromUriString("test.png"));
 		assertEquals("image/png", itemHandle.getMetadata().getMimeType());
 	}
 
 	@Test
 	public void testDefaultMimeType() throws Exception
 	{
-		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(new Query("test.properties"));
+		ItemHandle itemHandle = new FileResource(getFileResourceConfig()).resolve(Query.fromUriString("test.properties"));
 		assertEquals("text/plain", itemHandle.getMetadata().getMimeType());
 	}
 
@@ -114,7 +114,7 @@ public class FileResourceTest
 	public void testDirectoryAndEmptyPath() throws Exception
 	{
 		try {
-			new FileResource(getFileResourceConfig()).resolve(new Query(""));
+			new FileResource(getFileResourceConfig()).resolve(Query.fromUriString(""));
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -126,7 +126,7 @@ public class FileResourceTest
 	public void testNoCacheControlConfiguration() throws Exception
 	{
 		FileResource.Config config = getFileResourceConfig();
-		ItemHandle itemHandle = new FileResource(config).resolve(new Query("test"));
+		ItemHandle itemHandle = new FileResource(config).resolve(Query.fromUriString("test"));
 		assertNotNull(itemHandle.getMetadata());
 		assertNull(itemHandle.getMetadata().getCachePeriod());
 	}
@@ -136,7 +136,7 @@ public class FileResourceTest
 	{
 		FileResource.Config config = getFileResourceConfig();
 		config.setCachePeriod(1000);
-		ItemHandle itemHandle = new FileResource(config).resolve(new Query("test"));
+		ItemHandle itemHandle = new FileResource(config).resolve(Query.fromUriString("test"));
 		assertNotNull(itemHandle.getMetadata());
 		assertEquals(new Long(1000), itemHandle.getMetadata().getCachePeriod());
 	}
@@ -145,7 +145,7 @@ public class FileResourceTest
 	public void testNoCharacterEncodingConfiguration() throws Exception
 	{
 		FileResource.Config config = getFileResourceConfig();
-		ItemHandle itemHandle = new FileResource(config).resolve(new Query("test"));
+		ItemHandle itemHandle = new FileResource(config).resolve(Query.fromUriString("test"));
 		assertEquals("UTF-8", itemHandle.getMetadata().getCharacterEncoding());
 	}
 
@@ -155,7 +155,7 @@ public class FileResourceTest
 		final String ISO_CHAR = "iso-8859-1";
 		FileResource.Config config = getFileResourceConfig();
 		config.setCharacterEncoding(ISO_CHAR);
-		ItemHandle itemHandle = new FileResource(config).resolve(new Query("test"));
+		ItemHandle itemHandle = new FileResource(config).resolve(Query.fromUriString("test"));
 		assertEquals(ISO_CHAR, itemHandle.getMetadata().getCharacterEncoding());
 	}
 	
@@ -168,7 +168,7 @@ public class FileResourceTest
 		throws Exception
 	{
 		try {
-			Query query = new Query(uriString);
+			Query query = Query.fromUriString(uriString);
 			ItemHandle itemHandle = resource.resolve(query);
 			if (expectedContent == null) {
 				fail("should not be reached");

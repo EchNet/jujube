@@ -16,7 +16,7 @@ public class PathResourceTest
 	{
 		try
 		{
-			new PathResource(new PathResource.Config()).resolve(new Query("test.txt"));
+			new PathResource(new PathResource.Config()).resolve(Query.fromUriString("test.txt"));
 			fail("should not be reached");
 		}
 		catch (IOException e)
@@ -43,7 +43,7 @@ public class PathResourceTest
 		pConfig.addResource(new FileResource(new FileResource.Config("src/test/resources/")));
 		pConfig.addResource(new FileResource(new FileResource.Config("not/there/either/")));
 		PathResource pSource = new PathResource(pConfig);
-		assertEquals("src/test/resources/test.txt", pSource.resolve(new Query("test.txt")).toString());
+		assertEquals("src/test/resources/test.txt", pSource.resolve(Query.fromUriString("test.txt")).toString());
 	}
 
 	@Test
@@ -55,7 +55,7 @@ public class PathResourceTest
 			pConfig.addResource(new FileResource(new FileResource.Config("not/there/")));
 			pConfig.addResource(new FileResource(new FileResource.Config("not/there/either/")));
 			PathResource pSource = new PathResource(pConfig);
-			pSource.resolve(new Query("test.txt"));
+			pSource.resolve(Query.fromUriString("test.txt"));
 			fail("should not be reached");
 		}
 		catch (FileNotFoundException e)

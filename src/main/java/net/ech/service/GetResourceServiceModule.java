@@ -44,6 +44,6 @@ public class GetResourceServiceModule
 		if (getRequest().getQueryString() != null) {
 			uri += getRequest().getQueryString();
 		}
-		return new Query(uri);
+		return Query.fromUriString(uri);
 	}
 }

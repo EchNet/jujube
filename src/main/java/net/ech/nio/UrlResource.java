@@ -6,65 +6,70 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 public class UrlResource
-	extends UrlResourceConfig
 	implements Resource
 {
 	public final static String DEFAULT_CHARACTER_ENCODING = "UTF-8";
 
 	public static class Config
-		extends UrlResourceConfig
 	{
+		private String base;
+
 		public Config()
 		{
 		}
 
 		public Config(String base)
-			throws MalformedURLException
 		{
 			setBase(base);
 		}
 
-		public Config(URL base)
+		public void setBase(String base)
 		{
 			this.base = base;
 		}
 
-		public void setBase(String base)
-			throws MalformedURLException
-		{
-			this.base = new URL(base);
-		}
-
 		public String getBase()
 		{
-			return base == null ? null : base.toString();
+			return base;
 		}
 	}
 
+	private URL baseUrl;
+	private String baseQuery;
+
 	public UrlResource(Config config)
+		throws MalformedURLException
 	{
-		super(config);
+		URL url = new URL(config.base);
+		this.baseUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getFile());
+		this.baseQuery = url.getQuery();
 	}
 
 	@Override
 	public ItemHandle resolve(Query query)
 		throws IOException
 	{
-		return new UrlItemHandle(new URL(base, query.getPath() + toQueryString(query)));
+		return new UrlItemHandle(formUrl(query)); 
 	}
 
 	@Override
 	public String toString()
 	{
-		return base.toString();
+		String str = baseUrl.toString();
+		if (baseQuery != null) {
+			str += baseQuery;
+		}
+		return str;
 	}
 
-	private String toQueryString(Query query)
-		throws UnsupportedEncodingException
+	private URL formUrl(Query query)
+		throws MalformedURLException
 	{
-		Map<String,Object> params = Query.parseQueryString(base.getQuery());
-		params.putAll(query.getParameters());
-		return Query.formQueryString(params);
+		Query compQuery = new Query(null, query.getPath(), baseQuery);
+		for (String paramKey : query.getParameterKeys()) {
+			compQuery.setParameterValues(paramKey, query.getParameterValues(paramKey));
+		}
+		return new URL(baseUrl, compQuery.toString());
 	}
 
 	private class UrlItemHandle

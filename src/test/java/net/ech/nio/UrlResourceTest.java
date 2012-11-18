@@ -26,8 +26,9 @@ public class UrlResourceTest
 	@Test
 	public void testBadProtocol() throws Exception
 	{
+		UrlResource.Config config = new UrlResource.Config("looney://www.swoop.com");
 		try {
-			new UrlResource.Config("looney://www.swoop.com");
+			new UrlResource(config);
 			fail("should not be reached");
 		}
 		catch (MalformedURLException e) {
@@ -62,7 +63,7 @@ public class UrlResourceTest
 		try {
 			UrlResource.Config config = new UrlResource.Config("http://www.google.com");
 			UrlResource urlResource = new UrlResource(config);
-			urlResource.resolve(new Query("not-found.html"));
+			urlResource.resolve(Query.fromUriString("not-found.html"));
 			fail("should not be reached");
 		}
 		catch (FileNotFoundException e) {
@@ -75,7 +76,7 @@ public class UrlResourceTest
 	{
 		UrlResource.Config config = new UrlResource.Config("file:src/test/resources/?a=b");
 		UrlResource urlResource = new UrlResource(config);
-		ItemHandle itemHandle = urlResource.resolve(new Query("test.txt"));
+		ItemHandle itemHandle = urlResource.resolve(Query.fromUriString("test.txt"));
 		assertEquals("file:src/test/resources/test.txt?a=b", itemHandle.toString());
 	}
 
@@ -84,7 +85,7 @@ public class UrlResourceTest
 	{
 		UrlResource.Config config = new UrlResource.Config("file:src/test/resources/?a=b");
 		UrlResource urlResource = new UrlResource(config);
-		ItemHandle itemHandle = urlResource.resolve(new Query("test.txt?a=c&d=e"));
+		ItemHandle itemHandle = urlResource.resolve(Query.fromUriString("test.txt?a=c&d=e"));
 		assertEquals("file:src/test/resources/test.txt?a=c&d=e", itemHandle.toString());
 	}
 
@@ -93,7 +94,7 @@ public class UrlResourceTest
 	{
 		UrlResource.Config config = new UrlResource.Config("file:src/test/resources/");
 		UrlResource urlResource = new UrlResource(config);
-		ItemHandle itemHandle = urlResource.resolve(new Query("test.txt"));
+		ItemHandle itemHandle = urlResource.resolve(Query.fromUriString("test.txt"));
 		Reader reader = itemHandle.openReader();
 		try {
 			itemHandle.openReader();
@@ -108,7 +109,7 @@ public class UrlResourceTest
 		throws Exception
 	{
 		UrlResource urlResource = new UrlResource(config);
-		ItemHandle itemHandle = urlResource.resolve(new Query(uriString));
+		ItemHandle itemHandle = urlResource.resolve(Query.fromUriString(uriString));
 		assertNotNull(itemHandle.getMetadata());
 		assertEquals("text/html", itemHandle.getMetadata().getMimeType());
 		assertEquals(expectedCharacterEncoding, itemHandle.getMetadata().getCharacterEncoding().toLowerCase());

@@ -70,7 +70,7 @@ public class BeanPropertyMap
 							}
 
 							public Object getValue() {
-								return getPropertyValue(pDesc);
+								return getPropertyValue(pDesc, true);
 							}
 
 							public Object setValue(Object value) {
@@ -106,7 +106,7 @@ public class BeanPropertyMap
 		if (writeMethod == null) {
 			throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + pDesc.getName() + ": no setter");
 		}
-		Object oldValue = getPropertyValue(pDesc);
+		Object oldValue = getPropertyValue(pDesc, false);
 		Exception error = null;
 		try {
 			writeMethod.invoke(bean, new Object[] { coerce(value, pDesc.getPropertyType()) });
@@ -121,13 +121,17 @@ public class BeanPropertyMap
 	/**
 	 * Get a bean property via reflection.
 	 */
-	private Object getPropertyValue(PropertyDescriptor pDesc)
+	private Object getPropertyValue(PropertyDescriptor pDesc, boolean readRequired)
 		throws BeanException
 	{
 		Method readMethod = pDesc.getReadMethod();
 		if (readMethod == null) {
-			throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + pDesc.getName() + ": no getter");
+			if (readRequired) {
+				throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + pDesc.getName() + ": no getter");
+			}
+			return null;
 		}
+
 		Exception error = null;
 		try {
 			return readMethod.invoke(bean, null);

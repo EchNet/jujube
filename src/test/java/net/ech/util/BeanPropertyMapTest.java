@@ -55,18 +55,12 @@ public class BeanPropertyMapTest
 	}
 
 	@Test
-	public void testPutButMissingGetter() throws Exception
+	public void testPutWithMissingGetter() throws Exception
 	{
-		try {
-			BeanType1 bean = new BeanType1();
-			Map<String,Object> map = new BeanPropertyMap(bean);
-			map.put("c", "1");
-			fail("should not be reached");
-		}
-		catch (BeanException e) {
-			assertEquals(BeanType1.class, e.getBeanClass());
-			assertEquals("net.ech.util.BeanPropertyMapTest$BeanType1.c: no getter", e.getMessage());
-		}
+		BeanType1 bean = new BeanType1();
+		Map<String,Object> map = new BeanPropertyMap(bean);
+		map.put("c", "1");
+		assertNull(map.put("c", "1"));
 	}
 
 	@Test

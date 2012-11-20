@@ -22,6 +22,13 @@ public class ErrorLog
 
 	public List<Entry> entries = new ArrayList<Entry>();
 
+	public void warn(Exception e) {
+		log("warn", e.getMessage(), e);
+	}
+	public void warn(String msg) {
+		log("warn", msg, null);
+	}
+
 	public void error(Exception e) {
 		log("error", e.getMessage(), e);
 	}

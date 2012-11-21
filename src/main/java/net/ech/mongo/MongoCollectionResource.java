@@ -53,15 +53,13 @@ public class MongoCollectionResource
 	{
 		// Compose the query.
 		final DBObject q = new BasicDBObject();
-		if (addPathFields(q, query.getPath()) != null) {
-			throw new IOException(query + ": does not resolve to a single item");
-		}
+		addPathFields(q, query);
 		for (String paramKey : query.getParameterKeys()) {
 			q.put(paramKey, query.getParameter(paramKey));  // single parameter values only
 		}
 
 		// Compose key set (optional)
-		final DBObject keys = populateDBObject(new BasicDBObject(), filter);
+		final DBObject keys = populateDBObject(new BasicDBObject("_id", 0), filter == null ? new BasicDBObject() : filter);
 
 		// A basket to catch the result.
 		final StrongReference<Object> objRef = new StrongReference<Object>();
@@ -149,22 +147,18 @@ public class MongoCollectionResource
 		return dbObj;
 	}
 
-	private String addPathFields(DBObject q, String path)
+	private void addPathFields(DBObject q, Query query)
 		throws IOException
 	{
-		int pcx = 0;
+		String path = query.getPath();
+		String[] pathComps = path.equals("") ? new String[0] : path.split("\\/");
 
-		if (path != null) {
-			String[] pathComps = path.split("\\/");
-
-			for (; pcx < pathComps.length; ++pcx) {
-				if (pcx >= pathFields.length) {
-					throw new IOException(path + ": too many path components");
-				}
-				q.put(pathFields[pcx], pathComps[pcx]);
-			}
+		if (pathComps.length != pathFields.length) {
+			throw new IOException(query + (pathComps.length > pathFields.length ? ": too many path components" : ": does not resolve to single item"));
 		}
 
-		return pcx < pathFields.length ? pathFields[pcx] : null;
+		for (int pcx = 0; pcx < pathComps.length; ++pcx) {
+			q.put(pathFields[pcx], pathComps[pcx]);
+		}
 	}
 }

@@ -4,14 +4,26 @@ cd "$( dirname "$0" )"
 
 PORT=27027
 DIR=./target/test_mongo
-mkdir -p $DIR
+
+which mongod > /dev/null || { echo "'mongod' is not in the search path. Is mongo installed?"; exit 1; }
 
 function start() {
-	mongod --port $PORT --logpath $DIR/log --logappend --pidfilepath $DIR/pid --fork --dbpath $DIR/data--noauth --smallfiles || exit 1
+	mkdir -p $DIR/db
+	mongod --port 27027 --logpath $DIR/log --logappend --pidfilepath $DIR/pid --dbpath $DIR/db --smallfiles --nssize 2 --noauth --nojournal --fork >/dev/null || { echo 'exiting'; exit 1; }
+}
+
+function stop() {
+	mongo --port $PORT >/dev/null 2>&1 <<EOF
+use admin
+db.shutdownServer()
+EOF
 }
 
 function running() {
-	return 1
+	mongo --port $PORT >/dev/null 2>&1 <<EOF
+exit
+EOF
+	return $?
 }
 
 function wait() {
@@ -31,6 +43,7 @@ start)
 	wait
 	;;
 stop)
+	stop
 	;;
 esac
 

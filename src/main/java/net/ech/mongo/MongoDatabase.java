@@ -11,6 +11,8 @@ import net.ech.nio.*;
  */
 public class MongoDatabase
 {
+	public final static String DEFAULT_URI = "mongodb://localhost/test";
+
 	private final static int KEEP_ALIVE_MILLIS = 10 * 1000;
 
 	private MongoURI uri;
@@ -18,12 +20,10 @@ public class MongoDatabase
 	private int useCount;
 	private Mongo mongo;
 	private Thread reapThread;
-	private ErrorLog errorLog;
 
 	public static class Config extends MongoOptions
 	{
-		private String uri = "mongo://localhost";
-		private ErrorLog errorLog = new ErrorLog();
+		private String uri = DEFAULT_URI;
 
 		public Config()
 		{
@@ -34,11 +34,6 @@ public class MongoDatabase
 		{
 			this.uri = uri;
 		}
-
-		public void setErrorLog(ErrorLog errorLog)
-		{
-			this.errorLog = errorLog;
-		}
 	}
 
 	public MongoDatabase(Config config)
@@ -46,7 +41,6 @@ public class MongoDatabase
 	{
 		this.uri = new MongoURI(config.uri);
 		this.options = config.copy();
-		this.errorLog = config.errorLog;
 
 		if (this.uri.getDatabase() == null) {
 			throw new IOException("no DB specified");
@@ -56,21 +50,16 @@ public class MongoDatabase
 	/**
 	 * Get a Mongo collection wrapper.
 	 */
-	public MongoCollectionActor withCollection(String collectionName)
+	public MongoCollectionActor withCollection(final String collectionName)
 		throws IOException
 	{
-		final String collName = collectionName == null ? uri.getCollection() : collectionName;
-		if (collName == null) {
-			throw new IOException("no collection name");
-		}
-
 		return new MongoCollectionActor() 
 		{
 			@Override
 			public void act(MongoCollectionAction action)
 				throws IOException
 			{
-				withCollectionDo(collName, action);
+				withCollectionDo(collectionName, action);
 			}
 		};
 	}

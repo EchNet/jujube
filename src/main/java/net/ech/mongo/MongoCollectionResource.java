@@ -61,7 +61,7 @@ public class MongoCollectionResource
 		}
 
 		// Compose key set (optional)
-		final DBObject keys = populateDBObject(new BasicDBObject(), filter);
+		final DBObject keys = populateDBObject(new BasicDBObject("_id", 0), filter == null ? new BasicDBObject() : filter);
 
 		// A basket to catch the result.
 		final StrongReference<Object> objRef = new StrongReference<Object>();

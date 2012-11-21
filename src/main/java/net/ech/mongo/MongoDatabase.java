@@ -12,27 +12,36 @@ import net.ech.nio.*;
 public class MongoDatabase
 {
 	public final static String DEFAULT_URI = "mongodb://localhost/test";
-
-	private final static int KEEP_ALIVE_MILLIS = 10 * 1000;
+	public final static int DEFAULT_KEEP_ALIVE_MILLIS = 10 * 1000;
 
 	private MongoURI uri;
-	private MongoOptions options;
+	private int keepAliveMillis;
 	private int useCount;
 	private Mongo mongo;
 	private Thread reapThread;
 
-	public static class Config extends MongoOptions
+	public static class Config
 	{
 		private String uri = DEFAULT_URI;
+		private int keepAliveMillis = DEFAULT_KEEP_ALIVE_MILLIS;
 
 		public Config()
 		{
-			reset();
+		}
+
+		public Config(String uri)
+		{
+			setUri(uri);
 		}
 
 		public void setUri(String uri)
 		{
 			this.uri = uri;
+		}
+
+		public void setKeepAliveMillis(int keepAliveMillis)
+		{
+			this.keepAliveMillis = keepAliveMillis;
 		}
 	}
 
@@ -40,11 +49,19 @@ public class MongoDatabase
 		throws IOException
 	{
 		this.uri = new MongoURI(config.uri);
-		this.options = config.copy();
+		this.keepAliveMillis = config.keepAliveMillis;
 
 		if (this.uri.getDatabase() == null) {
 			throw new IOException("no DB specified");
 		}
+	}
+
+	/**
+	 * For testing.
+	 */
+	public synchronized boolean isOpen()
+	{
+		return mongo != null;
 	}
 
 	/**
@@ -88,57 +105,30 @@ public class MongoDatabase
 	private synchronized DBCollection use(String collectionName)
 		throws IOException
 	{
-		DB db = open();
 		++useCount;
+		DB db = open();
 		interruptReapTask();
 		return db.getCollection(collectionName);
 	}
 
 	private synchronized void release()
 	{
-		switch (useCount) {
-		case 0:
-			throw new IllegalStateException();
-		case 1:
-			startReapTask();
-		default:
-			--useCount;
+		if (--useCount == 0) {
+			reapThread = new Thread(new Reaper());
+			reapThread.start();
 		}
 	}
 
 	private synchronized DB open()
 		throws IOException
 	{
-		try {
-			if (mongo == null) {
-				mongo = new Mongo(uri);
-				mongo.setReadPreference(ReadPreference.SECONDARY);
-			}
-
-			String database = uri.getDatabase();
-			DB db = mongo.getDB(database);
-
-			String userName = uri.getUsername();
-			if (userName != null && userName.length() > 0 && !db.isAuthenticated()) {
-				db.authenticate(userName, uri.getPassword());
-			}
-
-			return db;
+		if (mongo == null) {
+			mongo = new Mongo(uri);
+			mongo.setReadPreference(ReadPreference.SECONDARY);
 		}
-		catch (UnknownHostException e) {
-			throw new IOException(e);
-		}
-		catch (MongoException e) {
-			throw new IOException(e);
-		}
-	}
 
-	private synchronized void close()
-	{
-		if (mongo != null) {
-			mongo.close();
-			mongo = null;
-		}
+		String database = uri.getDatabase();
+		return mongo.getDB(database);
 	}
 
 	private synchronized void interruptReapTask()
@@ -149,18 +139,12 @@ public class MongoDatabase
 		}
 	}
 
-	private synchronized void startReapTask()
-	{
-		reapThread = new Thread(new Reaper());
-		reapThread.start();
-	}
-
 	private class Reaper implements Runnable
 	{
 		public void run()
 		{
 			try {
-				Thread.sleep(KEEP_ALIVE_MILLIS);
+				Thread.sleep(keepAliveMillis);
 				reap();
 			}
 			catch (InterruptedException e) {
@@ -171,8 +155,9 @@ public class MongoDatabase
 	public synchronized void reap()
 	{
 		// Make double sure before closing.
-		if (reapThread == Thread.currentThread() && useCount == 0) {
-			close();
+		if (reapThread == Thread.currentThread() && useCount == 0 && mongo != null) {
+			mongo.close();
+			mongo = null;
 		}
 	}
 }

@@ -5,7 +5,7 @@ import java.util.*;
 class MongoCollectionResourceStruct
 {
 	public final static String DEFAULT_COLLECTION_NAME = "test";
-	public final static String[] DEFAULT_PATH_FIELDS = new String[] { "_id" };
+	public final static String[] DEFAULT_PATH_FIELDS = new String[] { "id" };
 
 	protected MongoDatabase mongoDatabase;
 	protected String collectionName = DEFAULT_COLLECTION_NAME;

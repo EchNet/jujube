@@ -2,7 +2,6 @@ package net.ech.util;
 
 import java.util.*;
 import org.junit.*;
-import org.springframework.mock.web.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

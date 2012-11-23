@@ -2,12 +2,26 @@
 	service: {
 		modules: [{
 			method: "GET",
+			path: "/meregaer",
 			module: {
 				"$class": "net.ech.service.GetResourceServiceModule",
 				resource: {
 					"$class": "net.ech.nio.UrlResource",
 					base: "http://ech.net/meregaer/"
-					//base: "http://www.swoop.com"
+				}
+			}
+		},{
+			method: "GET",
+			path: "/dwarf",
+			module: {
+				"$class": "net.ech.service.GetResourceServiceModule",
+				resource: {
+					"$class": "net.ech.mongo.MongoCollectionResource",
+					collectionName: "dwarves",
+					mongoDatabase: {
+						"$class": "net.ech.mongo.MongoDatabase",
+						uri: "mongodb://localhost:27027/test"
+					}
 				}
 			}
 		},{
@@ -17,7 +31,7 @@
 		},{
 			method: "GET",
 			module: {
-				"$class": "net.ech.service.AccessControlServiceModule"
+				"$class": "net.ech.service.CacheControlServiceModule"
 			}
 		}]
 	}

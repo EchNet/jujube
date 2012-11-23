@@ -15,6 +15,16 @@ public class AbstractServiceModule
 	}
 
 	@Override
+	public void setModulePath(String modulePath)
+	{
+	}
+
+	@Override
+	public void setQueryPath(String queryPath)
+	{
+	}
+
+	@Override
 	public void preprocess()
 		throws IOException, ServletException
 	{

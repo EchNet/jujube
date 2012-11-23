@@ -127,8 +127,12 @@ public class MongoDatabase
 			mongo.setReadPreference(ReadPreference.SECONDARY);
 		}
 
-		String database = uri.getDatabase();
-		return mongo.getDB(database);
+		DB db = mongo.getDB(uri.getDatabase());
+		String userName = uri.getUsername();
+		if (userName != null && userName.length() > 0 && !db.isAuthenticated()) {
+			db.authenticate(userName, uri.getPassword());
+		}
+		return db;
 	}
 
 	private synchronized void interruptReapTask()

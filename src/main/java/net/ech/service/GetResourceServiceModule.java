@@ -9,6 +9,7 @@ public class GetResourceServiceModule
 	implements ServiceModule
 {
 	private Resource resource;
+	private String queryPath;
 
 	public static class Config {
 		private Resource resource;
@@ -26,6 +27,12 @@ public class GetResourceServiceModule
 	}
 
 	@Override
+	public void setQueryPath(String queryPath)
+	{
+		this.queryPath = queryPath;
+	}
+
+	@Override
 	public void preprocess()
 		throws IOException, ServletException
 	{
@@ -40,7 +47,7 @@ public class GetResourceServiceModule
 	private Query makeQuery()
 		throws java.net.URISyntaxException
 	{
-		String uri = getRequest().getRequestURI();
+		String uri = queryPath;
 		if (getRequest().getQueryString() != null) {
 			uri += getRequest().getQueryString();
 		}

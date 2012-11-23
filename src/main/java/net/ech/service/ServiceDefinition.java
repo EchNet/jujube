@@ -53,9 +53,15 @@ public class ServiceDefinition
 		for (Map<String,Object> smMatcher : modules) {
 			if (smMatcher.containsKey("method") && !request.getMethod().matches(smMatcher.get("method").toString()))
 				continue;
-			if (smMatcher.containsKey("path") && !request.getPathInfo().matches(smMatcher.get("path").toString()))
+			// TODO: respect path component boundaries
+			if (smMatcher.containsKey("path") && !request.getPathInfo().startsWith(smMatcher.get("path").toString()))
 				continue;
-			list.add(new Whence(smMatcher).pull("module", ServiceModule.class));
+			ServiceModule serviceModule = new Whence(smMatcher).pull("module", ServiceModule.class);
+			if (smMatcher.containsKey("path")) {
+				serviceModule.setModulePath(smMatcher.get("path").toString());
+				serviceModule.setQueryPath(request.getPathInfo().substring(smMatcher.get("path").toString().length()));
+			}
+			list.add(serviceModule);
 		}
 		return list.toArray(new ServiceModule[list.size()]);
 	}

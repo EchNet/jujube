@@ -2,36 +2,39 @@ package net.ech.service;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
-import net.ech.nio.ItemHandle;
 
-public class AbstractServiceModule
-	extends ProxyServiceContext
+public abstract class AbstractServiceModule
 	implements ServiceModule
 {
+	private String method;
+	private String path;
+
 	@Override
-	public void setServiceContext(ServiceContext context)
+	public String getMethod()
 	{
-		setInner(context);
+		return method;
 	}
 
 	@Override
-	public void setModulePath(String modulePath)
+	public void setMethod(String method)
 	{
+		this.method = method;
 	}
 
 	@Override
-	public void setQueryPath(String queryPath)
+	public String getPath()
 	{
+		return path;
 	}
 
 	@Override
-	public void preprocess()
-		throws IOException, ServletException
+	public void setPath(String path)
 	{
+		this.path = path;
 	}
 
 	@Override
-	public void postprocess(ItemHandle contentItemHandle)
+	public void process(ServiceContext context)
 		throws IOException, ServletException
 	{
 	}

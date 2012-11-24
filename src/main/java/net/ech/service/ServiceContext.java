@@ -1,6 +1,5 @@
 package net.ech.service;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.*;
 import net.ech.nio.ItemHandle;
 
@@ -12,6 +11,9 @@ public interface ServiceContext
 
 	public HttpServletResponse getResponse();
 
-	public void submitContent(ItemHandle contentItemHandle)
-		throws ServletException;
+	public void setQueryPath(String queryPath);
+	public String getQueryPath();
+
+	public void setContent(ItemHandle contentItem);
+	public ItemHandle getContent();
 }

@@ -12,103 +12,105 @@ public class HubServlet
 	extends HttpServlet
 {
 	private final static String SERVICE_CONFIG = "refapp/simple_proxy.json";  // TEMPORARILY HARDWIRED
+	private final static String HUB_SERVICE_CONTEXT_ATTR = "hubServiceContext";
 
 	private ServiceDefinition serviceDefinition;
+
+	@Override
+	public void init()
+		throws ServletException
+	{
+		try {
+			Object document = new JsonCodec().decode(new BufferedReader(new FileReader(SERVICE_CONFIG)));
+			serviceDefinition = new Whence(document).pull("service", ServiceDefinition.class);
+		}
+		catch (IOException e) {
+			throw new ServletException(e);
+		}
+	}
 
     @Override
 	public void service(final HttpServletRequest request, final HttpServletResponse response)
     {
-		long startTime = System.currentTimeMillis();
-		final StrongReference<ItemHandle> contentItemRef = new StrongReference<ItemHandle>();
-
 		try {
-			ServiceDefinition serviceDefinition = getServiceDefinition();
-
-			// Turn it inside out.
-			ServiceContext serviceContext = new ServiceContext()
-			{
-				private ItemHandle contentItemHandle;
-
-				@Override
-				public HttpServlet getServlet()
-				{
-					return HubServlet.this;
-				}
-
-				@Override
-				public HttpServletRequest getRequest()
-				{
-					return request;
-				}
-
-				@Override
-				public HttpServletResponse getResponse()
-				{
-					return response;
-				}
-
-				@Override
-				public void submitContent(ItemHandle contentItemHandle)
-					throws ServletException
-				{
-					if (contentItemRef.get() != null) {
-						throw new ServletException("service configuration error: multiple content submissions");
-					}
-					contentItemRef.set(contentItemHandle);
-				}
-			};
-
-			ServiceModule[] serviceModules = serviceDefinition.filterServiceModules(request);
-
-			for (ServiceModule serviceModule : serviceModules) {
-				serviceModule.setServiceContext(serviceContext);
-				serviceModule.preprocess();
+			try {
+				super.service(request, response);
+				postprocess(request);
 			}
-
-			if (contentItemRef.get() != null) {
-				for (ServiceModule serviceModule : serviceModules) {
-					serviceModule.postprocess(contentItemRef.get());
-				}
-				moveContent(contentItemRef.get(), serviceContext);
+			catch (FileNotFoundException e) {
+				getServiceContext(request).sendError(404, "not found");
+				return;
 			}
-		}
-		catch (FileNotFoundException e) {
-			sendError(response, 404, "not found");
+			catch (Exception e) {
+				getServiceContext(request).sendError(500, "server error");
+				throw e;
+			}
+			getServiceContext(request).handleResponseContent();
 		}
 		catch (Exception e) {
-			sendError(response, 500, "server error");
 			logError(e);
 		}
 	}
 
-	private ServiceDefinition getServiceDefinition()
-		throws IOException
+	@Override
+	public void doPost(final HttpServletRequest request, final HttpServletResponse response)
+		throws ServletException, IOException
 	{
-		if (serviceDefinition == null) {
-			synchronized (this) {
-				if (serviceDefinition == null) {
-					Object document = new JsonCodec().decode(new BufferedReader(new FileReader(SERVICE_CONFIG)));
-					serviceDefinition = new Whence(document).pull("service", ServiceDefinition.class);
-				}
-			}
+		doGet(request, response);
+	}
+
+	@Override
+	public void doGet(final HttpServletRequest request, final HttpServletResponse response)
+		throws ServletException, IOException
+	{
+		ServiceContext context = initServiceContext(request, response);
+
+		for (ServiceModule serviceModule : getServiceDefinition().getServiceModules(context)) {
+			serviceModule.process(context);
 		}
+	}
+
+	private ServiceDefinition getServiceDefinition()
+	{
 		return serviceDefinition;
 	}
 
-	private void moveContent(ItemHandle item, ServiceContext serviceContext)
-		throws IOException
+	private AbstractServiceContext getServiceContext(final HttpServletRequest request)
 	{
-		ContentServiceModule csModule = new ContentServiceModule();
-		csModule.setServiceContext(serviceContext);
-		csModule.postprocess(item);
+		return (AbstractServiceContext) request.getAttribute(HUB_SERVICE_CONTEXT_ATTR);
 	}
 
-	private void sendError(HttpServletResponse response, int statusCode, String message)
+	private AbstractServiceContext initServiceContext(final HttpServletRequest request, final HttpServletResponse response)
 	{
-		try {
-			response.sendError(statusCode, message);
-		}
-		catch (IOException ignore) {
+		AbstractServiceContext serviceContext = new AbstractServiceContext() {
+
+			@Override
+			public HttpServlet getServlet()
+			{
+				return HubServlet.this;
+			}
+
+			@Override
+			public HttpServletRequest getRequest()
+			{
+				return request;
+			}
+
+			@Override
+			public HttpServletResponse getResponse()
+			{
+				return response;
+			}
+		};
+		request.setAttribute(HUB_SERVICE_CONTEXT_ATTR, serviceContext);
+		return serviceContext;
+	}
+
+	private void postprocess(final HttpServletRequest request)
+		throws ServletException, IOException
+	{
+		for (ServicePostProcessor postProcessor : getServiceDefinition().getPostProcessors()) {
+			postProcessor.postprocess(getServiceContext(request));
 		}
 	}
 

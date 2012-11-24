@@ -1,67 +1,53 @@
 package net.ech.service;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
-import net.ech.config.Whence;
 import javax.servlet.http.HttpServletRequest;
 
 public class ServiceDefinition
 {
-	public static class ServiceModuleMatcher
+	private ServiceModule[] serviceModules;
+	private ServicePostProcessor[] postProcessors;
+
+	public void setServiceModules(ServiceModule[] serviceModules)
 	{
-		private String method;
-		private String path;
-		private ServiceModule module;
-
-		public String getMethod()
-		{
-			return method;
-		}
-
-		public void setMethod(String method)
-		{
-			this.method = method;
-		}
-
-		public String getPath()
-		{
-			return path;
-		}
-
-		public void setPath(String path)
-		{
-			this.path = path;
-		}
+		this.serviceModules = serviceModules;
 	}
 
-	private Map[] modules;
-
-	public void setModules(Map[] modules)
+	public ServiceModule[] getServiceModules()
 	{
-		this.modules = modules;
+		return serviceModules;
 	}
 
-	public Map[] getModules()
+	public void setPostProcessors(ServicePostProcessor[] postProcessors)
 	{
-		return modules;
+		this.postProcessors = postProcessors;
 	}
 
-	public ServiceModule[] filterServiceModules(HttpServletRequest request)
+	public ServicePostProcessor[] getPostProcessors()
+	{
+		return postProcessors;
+	}
+
+	public ServiceModule[] getServiceModules(ServiceContext serviceContext)
 		throws IOException
 	{
+		HttpServletRequest request = serviceContext.getRequest();
 		List<ServiceModule> list = new ArrayList<ServiceModule>();
-		for (Map<String,Object> smMatcher : modules) {
-			if (smMatcher.containsKey("method") && !request.getMethod().matches(smMatcher.get("method").toString()))
-				continue;
-			// TODO: respect path component boundaries
-			if (smMatcher.containsKey("path") && !request.getPathInfo().startsWith(smMatcher.get("path").toString()))
-				continue;
-			ServiceModule serviceModule = new Whence(smMatcher).pull("module", ServiceModule.class);
-			if (smMatcher.containsKey("path")) {
-				serviceModule.setModulePath(smMatcher.get("path").toString());
-				serviceModule.setQueryPath(request.getPathInfo().substring(smMatcher.get("path").toString().length()));
+		for (ServiceModule module : getServiceModules()) {
+			if ((module.getMethod() == null || request.getMethod().matches(module.getMethod())) &&
+				// TODO: respect path component boundaries
+				(module.getPath() == null || request.getPathInfo().startsWith(module.getPath())))
+			{
+				if (module.getPath() != null) {
+					serviceContext.setQueryPath(request.getPathInfo().substring(module.getPath().length()));
+				}
+				list.add(module);
+				break;
 			}
-			list.add(serviceModule);
+		}
+		if (request.getMethod().matches("GET|POST") && list.size() == 0) {
+			throw new FileNotFoundException(request.getPathInfo());
 		}
 		return list.toArray(new ServiceModule[list.size()]);
 	}

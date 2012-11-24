@@ -2,26 +2,15 @@ package net.ech.service;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
-import net.ech.nio.ItemHandle;
 
 public interface ServiceModule
 {
-	/**
-	 * Initialize this ServiceModule.
-	 */
-	public void setServiceContext(ServiceContext context);
-	public void setModulePath(String modulePath);
-	public void setQueryPath(String queryPath);
+	public void setMethod(String methodRegexp);
+	public String getMethod();
 
-	/**
-	 * Called before content item is available.  May make content item available.
-	 */
-	public void preprocess()
-		throws IOException, ServletException;
+	public void setPath(String path);
+	public String getPath();
 
-	/**
-	 * Called when content item (if any) is available.
-	 */
-	public void postprocess(ItemHandle itemHandle)
+	public void process(ServiceContext context)
 		throws IOException, ServletException;
 }

@@ -1,56 +1,35 @@
 package net.ech.service;
 
-import net.ech.nio.*;
 import java.io.IOException;
 import javax.servlet.ServletException;
+import net.ech.nio.Query;
+import net.ech.nio.Resource;
 
 public class GetResourceServiceModule
 	extends AbstractServiceModule
 	implements ServiceModule
 {
 	private Resource resource;
-	private String queryPath;
 
-	public static class Config {
-		private Resource resource;
-		public void setResource(Resource resource) {
-			this.resource = resource;
-		}
-		public Resource getResource() {
-			return resource;
-		}
-	}
-
-	public GetResourceServiceModule(Config config)
+	public void setResource(Resource resource)
 	{
-		this.resource = config.resource;
+		this.resource = resource;
 	}
 
 	@Override
-	public void setQueryPath(String queryPath)
-	{
-		this.queryPath = queryPath;
-	}
-
-	@Override
-	public void preprocess()
+	public void process(ServiceContext context)
 		throws IOException, ServletException
 	{
 		try {
-			submitContent(resource.resolve(makeQuery()));
+			String uri = context.getQueryPath();
+			if (context.getRequest().getQueryString() != null) {
+				uri += context.getRequest().getQueryString();
+			}
+			Query query = Query.fromUriString(uri);
+			context.setContent(resource.resolve(query));
 		}
 		catch (java.net.URISyntaxException e) {
 			throw new IOException(e);
 		}
-	}
-
-	private Query makeQuery()
-		throws java.net.URISyntaxException
-	{
-		String uri = queryPath;
-		if (getRequest().getQueryString() != null) {
-			uri += getRequest().getQueryString();
-		}
-		return Query.fromUriString(uri);
 	}
 }

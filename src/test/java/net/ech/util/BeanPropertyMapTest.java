@@ -171,23 +171,53 @@ public class BeanPropertyMapTest
 	}
 
 	@Test
-	public void testCoercions() throws Exception
+	public void testStringToCharacterCoercion() throws Exception
 	{
 		BeanType2 bean = new BeanType2();
 		Map<String,Object> map = new BeanPropertyMap(bean);
-
 		assertNull(bean.characterProp);
 		map.put("characterProp", "a");
 		assertEquals(new Character('a'), bean.characterProp);
+	}
 
+	@Test
+	public void testStringToCharCoercion() throws Exception
+	{
+		BeanType2 bean = new BeanType2();
+		Map<String,Object> map = new BeanPropertyMap(bean);
 		assertEquals(0, bean.charProp);
 		map.put("charProp", "a");
 		assertEquals('a', bean.charProp);
+	}
 
+	@Test
+	public void testListToArrayCoercion() throws Exception
+	{
+		BeanType2 bean = new BeanType2();
+		Map<String,Object> map = new BeanPropertyMap(bean);
 		assertNull(bean.arrayProp);
 		map.put("arrayProp", Collections.singletonList("abc"));
 		assertEquals(new String[]{ "abc" }, bean.arrayProp);
+	}
 
+	@Test
+	public void testPolymorphListToArrayCoercion() throws Exception
+	{
+		BeanType2 bean = new BeanType2();
+		Map<String,Object> map = new BeanPropertyMap(bean);
+		assertNull(bean.arrayProp);
+		List<Number> nList = new ArrayList<Number>();
+		nList.add(new Integer(1));
+		nList.add(new Double(2.0));
+		map.put("numberArrayProp", nList);
+		assertEquals(new Number[]{ new Integer(1), new Double(2.0) }, bean.nArrayProp);
+	}
+
+	@Test
+	public void testArrayToListCoercion() throws Exception
+	{
+		BeanType2 bean = new BeanType2();
+		Map<String,Object> map = new BeanPropertyMap(bean);
 		assertNull(bean.listProp);
 		map.put("listProp", new String[]{ "abc" });
 		assertEquals(Collections.singletonList("abc"), bean.listProp);
@@ -245,6 +275,7 @@ public class BeanPropertyMapTest
 		Character characterProp;
 		char charProp;
 		String[] arrayProp;
+		Number[] nArrayProp;
 		List<String> listProp;
 
 		public void setCharacterProp(Character characterProp) { this.characterProp = characterProp; }
@@ -253,6 +284,8 @@ public class BeanPropertyMapTest
 		public char getCharProp() { return charProp; }
 		public void setArrayProp(String[] arrayProp) { this.arrayProp = arrayProp; }
 		public String[] getArrayProp() { return arrayProp; }
+		public void setNumberArrayProp(Number[] nArrayProp) { this.nArrayProp = nArrayProp; }
+		public Number[] getNumberArrayProp() { return nArrayProp; }
 		public void setListProp(List<String> listProp) { this.listProp = listProp; }
 		public List<String> getListProp() { return listProp; }
 	}

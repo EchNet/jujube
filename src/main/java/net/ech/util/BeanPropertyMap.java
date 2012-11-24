@@ -164,7 +164,7 @@ public class BeanPropertyMap
 
 			// Permit assignment of List to array.
 			if (expectedClass.isArray() && (obj instanceof List)) {
-				return ((List) obj).toArray((Object[]) Array.newInstance(expectedClass.getComponentType(), 0));
+				return ((List) obj).toArray((Object[]) Array.newInstance(expectedClass.getComponentType(), ((List) obj).size()));
 			}
 		}
 

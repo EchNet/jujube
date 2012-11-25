@@ -40,6 +40,11 @@ public class BeanPropertyMap
 		return bean.getClass();
 	}
 
+	public Class<?> getPropertyClass(String key)
+	{
+		return propDescs.containsKey(key) ?  propDescs.get(key).getPropertyType() : null;
+	}
+
 	@Override
 	public Set<Map.Entry<String,Object>> entrySet()
 	{
@@ -163,8 +168,13 @@ public class BeanPropertyMap
 			}
 
 			// Permit assignment of List to array.
-			if (expectedClass.isArray() && (obj instanceof List)) {
-				return ((List) obj).toArray((Object[]) Array.newInstance(expectedClass.getComponentType(), ((List) obj).size()));
+			try {
+				if (expectedClass.isArray() && (obj instanceof List)) {
+					return ((List) obj).toArray((Object[]) Array.newInstance(expectedClass.getComponentType(), ((List) obj).size()));
+				}
+			}
+			catch (ArrayStoreException e) {
+				throw new RuntimeException("can't coerce " + obj + " to " + expectedClass, e);
 			}
 		}
 

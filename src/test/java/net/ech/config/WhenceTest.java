@@ -97,6 +97,57 @@ public class WhenceTest
 	}
 
 	@Test
+	public void testPositiveListGenericElement() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", Arrays.asList(new Object[] {
+				new Hash("property", "manilla"),
+				new Hash("property", "vanilla")
+			})));
+
+		Object obj = w.pull("thing");
+		assertNotNull(obj);
+		assertTrue(obj instanceof List);
+		assertEquals(2, ((List<?>) obj).size());
+		assertTrue(((List<?>) obj).get(0) instanceof Map);
+		assertTrue(((List<?>) obj).get(1) instanceof Map);
+	}
+
+	@Test
+	public void testPositiveListElementTypeGiven() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", Arrays.asList(new Object[] {
+				new Hash("property", "manilla"),
+				new Hash("property", "vanilla")
+			})));
+
+		Object obj = w.pull("thing", List.class);
+		assertNotNull(obj);
+		assertTrue(obj instanceof List);
+		assertEquals(2, ((List<?>) obj).size());
+		assertTrue(((List<?>) obj).get(0) instanceof Map);
+		assertTrue(((List<?>) obj).get(1) instanceof Map);
+	}
+
+	@Test
+	public void testPositiveListArrayElementTypeGiven() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", Arrays.asList(new Object[] {
+				new Hash("property", "manilla"),
+				new Hash("property", "vanilla")
+			})));
+
+		Object obj = w.pull("thing", Bean[].class);
+		assertNotNull(obj);
+		assertTrue(obj instanceof Bean[]);
+		assertEquals(2, ((Bean[]) obj).length);
+		assertTrue(((Bean[]) obj)[0] instanceof Bean);
+		assertTrue(((Bean[]) obj)[1] instanceof Bean);
+	}
+
+	@Test
 	public void testNegativeInterface() throws Exception
 	{
 		Whence w = new Whence(new Hash()
@@ -112,12 +163,5 @@ public class WhenceTest
 			assertNotNull(e.getCause());
 			assertEquals("java.util.List: is an interface", e.getCause().getMessage());
 		}
-	}
-
-	public static class Bean
-	{
-		private String property;
-		public String getProperty() { return property; }
-		public void setProperty(String property) { this.property = property; }
 	}
 }

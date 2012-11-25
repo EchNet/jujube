@@ -1,38 +1,30 @@
 {
 	service: {
-		modules: [{
-			method: "GET",
-			path: "/meregaer",
-			module: {
-				"$class": "net.ech.service.GetResourceServiceModule",
-				resource: {
-					"$class": "net.ech.nio.UrlResource",
-					base: "http://ech.net/meregaer/"
-				}
-			}
-		},{
+		serviceModules: [{
+			"$class": "net.ech.service.GetResourceServiceModule",
 			method: "GET",
 			path: "/dwarf",
-			module: {
-				"$class": "net.ech.service.GetResourceServiceModule",
-				resource: {
-					"$class": "net.ech.mongo.MongoCollectionResource",
-					collectionName: "dwarves",
-					mongoDatabase: {
-						"$class": "net.ech.mongo.MongoDatabase",
-						uri: "mongodb://localhost:27027/test"
-					}
+			resource: {
+				"$class": "net.ech.mongo.MongoCollectionResource",
+				collectionName: "dwarves",
+				mongoDatabase: {
+					"$class": "net.ech.mongo.MongoDatabase",
+					uri: "mongodb://localhost:27027/test"
 				}
 			}
 		},{
-			module: {
-				"$class": "net.ech.service.AccessControlServiceModule"
-			}
-		},{
+			"$class": "net.ech.service.GetResourceServiceModule",
 			method: "GET",
-			module: {
-				"$class": "net.ech.service.CacheControlServiceModule"
+			path: "/",
+			resource: {
+				"$class": "net.ech.nio.UrlResource",
+				base: "http://ech.net/"
 			}
+		}],
+		postProcessors: [{
+			"$class": "net.ech.service.AccessControlPostProcessor"
+		},{
+			"$class": "net.ech.service.CacheControlPostProcessor"
 		}]
 	}
 }

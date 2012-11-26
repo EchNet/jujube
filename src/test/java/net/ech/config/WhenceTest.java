@@ -169,7 +169,6 @@ public class WhenceTest
 		}
 	}
 
-	/****
 	@Test
 	public void testSimpleReference() throws Exception
 	{
@@ -183,5 +182,18 @@ public class WhenceTest
 		assertNotNull(bean);
 		assertEquals("manilla", bean.getProperty());
 	}
-	****/
+
+	@Test
+	public void testCachedObject() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", new Hash()
+				.addEntry("property", "manilla")));
+
+		Bean bean1 = w.pull("thing", Bean.class);
+		Bean bean2 = w.pull("thing", Bean.class);
+		assertNotNull(bean1);
+		assertEquals("manilla", bean1.getProperty());
+		assertTrue("not same bean", bean1 == bean2);
+	}
 }

@@ -70,7 +70,7 @@ public class DQuery
 
     public DQuery find(String expression)
     {
-        return find(parseDPath(expression));
+        return find(DPath.parse(expression));
     }
 
     public DQuery find(DPath path)
@@ -223,15 +223,6 @@ public class DQuery
     public String toString()
     {
         return stuff == null ? "null" : stuff.toString();
-    }
-
-    private static DPath parseDPath(String expression)
-    {
-		DPath path = new DPath();
-        for (StringTokenizer toks = new StringTokenizer(expression, "."); toks.hasMoreTokens(); ) {
-			path.append(toks.nextToken());
-        }
-        return path;
     }
 
     private Object deref(String fieldName)

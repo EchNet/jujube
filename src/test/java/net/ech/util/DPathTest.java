@@ -9,6 +9,12 @@ import static org.junit.Assert.assertTrue;
 public class DPathTest
 {
 	@Test
+	public void testParse() throws Exception
+	{
+		assertEquals(new DPath().append("a").append("b").append("c"), DPath.parse("a.b.c"));
+	}
+
+	@Test
 	public void testGetDocumentNameDefault() throws Exception
 	{
         assertNull(new DPath().getDocumentName());

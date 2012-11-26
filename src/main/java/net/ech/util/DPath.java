@@ -12,6 +12,13 @@ public class DPath
 {
     private String documentName;
 
+    public static DPath parse(String expression)
+    {
+		DPath path = new DPath();
+		path.addAll(Arrays.asList(expression.split("\\.")));
+        return path;
+    }
+
     public DPath()
     {
     }

@@ -12,16 +12,18 @@ public class Whence
 	private final static Map<String,Object> A_MAP = new HashMap<String,Object>();
 
 	private Object document;
+	private Map<DPath,Object> cache;
 
 	public Whence(Object document)
 	{
 		this.document = document;
+		this.cache = new HashMap<DPath,Object>();
 	}
 
 	public Object pull(String key)
 		throws IOException
 	{
-		return pull(new DQuery(document).find(key), null);
+		return pull(key, Object.class);
 	}
 
 	public <T> T pull(String key, Class<T> clazz)
@@ -35,9 +37,9 @@ public class Whence
 	{
 		try {
 			if (dq.isNull()) {
-				return null;
+				throw new DocumentException("no such key");
 			}
-
+			
 			if (dq.get() instanceof Map) {
 
 				if (!dq.find("$class").isNull()) {
@@ -61,7 +63,7 @@ public class Whence
 				Map<String,Object> map;
 				if (implClass != null && !implClass.isInstance(A_MAP)) {
 					if (implClass.isInterface()) {
-						throw new IllegalArgumentException(implClass.getName() + ": is an interface");
+						throw new IllegalArgumentException(implClass.getName() + " is an interface");
 					}
 					result = implClass.newInstance();
 					map = bpm = new BeanPropertyMap(result);
@@ -89,7 +91,7 @@ public class Whence
 			return dq.get();
 		}
 		catch (Exception e) {
-			throw new IOException("cannot configure " + dq.getPath(), e);
+			throw new IOException("cannot configure " + dq.getPath() + ": " + e.getMessage(), e);
 		}
 	}
 

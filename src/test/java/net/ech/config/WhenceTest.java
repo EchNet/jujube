@@ -13,11 +13,15 @@ import static org.junit.Assert.fail;
 public class WhenceTest
 {
 	@Test
-	public void testNullCase() throws Exception
+	public void testNotFoundCase() throws Exception
 	{
-		Whence w = new Whence(new Hash());
-		SimpleConfigurable bean = w.pull("thing", SimpleConfigurable.class);
-		assertNull(bean);
+		try {
+			Whence w = new Whence(new Hash());
+			w.pull("thing", Object.class);
+		}
+		catch (IOException e) {
+			assertEquals("cannot configure thing: no such key", e.getMessage());
+		}
 	}
 
 	@Test
@@ -159,9 +163,25 @@ public class WhenceTest
 			fail("should not be reached");
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing", e.getMessage());
+			assertEquals("cannot configure thing: java.util.List is an interface", e.getMessage());
 			assertNotNull(e.getCause());
-			assertEquals("java.util.List: is an interface", e.getCause().getMessage());
+			assertEquals("java.util.List is an interface", e.getCause().getMessage());
 		}
 	}
+
+	/****
+	@Test
+	public void testSimpleReference() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", new Hash()
+				.addEntry("property", "{{ strings.property }}"))
+			.addEntry("strings", new Hash()
+				.addEntry("property", "manilla")));
+
+		Bean bean = w.pull("thing", Bean.class);
+		assertNotNull(bean);
+		assertEquals("manilla", bean.getProperty());
+	}
+	****/
 }

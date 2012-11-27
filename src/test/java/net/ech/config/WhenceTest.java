@@ -101,7 +101,55 @@ public class WhenceTest
 	}
 
 	@Test
-	public void testPositiveListGenericElement() throws Exception
+	public void testPositiveBeanAsSubtype() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", new Hash()
+				.addEntry("property", "manilla")));
+
+		IBean bean = w.pull("thing", IBean.class);
+		assertNotNull(bean);
+		assertTrue(bean instanceof Bean);
+		assertEquals("manilla", ((Bean)bean).getProperty());
+	}
+
+	@Test
+	public void testNegativeBeanAsUnknownSubtype() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", new Hash()
+				.addEntry("mopperty", "manilla")));
+
+		try {
+			w.pull("thing", IBean.class);
+			fail("should not be reached");
+		}
+		catch (IOException e) {
+			assertEquals("cannot configure thing: does not appear to configure a subtype of interface net.ech.config.IBean", e.getMessage());
+			assertNotNull(e.getCause());
+		}
+	}
+
+	@Test
+	public void testNegativeBeanAsAmbiguousSubtype() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", new Hash()
+				.addEntry("property", "manilla")
+				.addEntry("properly", "manilla")));
+
+		try {
+			w.pull("thing", IBean.class);
+			fail("should not be reached");
+		}
+		catch (IOException e) {
+			assertEquals("cannot configure thing: ambiguous subtype", e.getMessage());
+			assertNotNull(e.getCause());
+		}
+	}
+
+	@Test
+	public void testPositiveArrayAsObject() throws Exception
 	{
 		Whence w = new Whence(new Hash()
 			.addEntry("thing", Arrays.asList(new Object[] {
@@ -118,7 +166,7 @@ public class WhenceTest
 	}
 
 	@Test
-	public void testPositiveListElementTypeGiven() throws Exception
+	public void testPositiveArrayAsList() throws Exception
 	{
 		Whence w = new Whence(new Hash()
 			.addEntry("thing", Arrays.asList(new Object[] {
@@ -135,7 +183,7 @@ public class WhenceTest
 	}
 
 	@Test
-	public void testPositiveListArrayElementTypeGiven() throws Exception
+	public void testPositiveListArrayAsArray() throws Exception
 	{
 		Whence w = new Whence(new Hash()
 			.addEntry("thing", Arrays.asList(new Object[] {
@@ -149,6 +197,25 @@ public class WhenceTest
 		assertEquals(2, ((Bean[]) obj).length);
 		assertTrue(((Bean[]) obj)[0] instanceof Bean);
 		assertTrue(((Bean[]) obj)[1] instanceof Bean);
+	}
+
+	@Test
+	public void testNegativeListArrayAsBean() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", Arrays.asList(new Object[] {
+				new Hash("property", "manilla"),
+				new Hash("property", "vanilla")
+			})));
+
+		try {
+			w.pull("thing", Bean.class);
+			fail("should not be reached");
+		}
+		catch (IOException e) {
+			assertEquals("cannot configure thing: class net.ech.config.Bean cannot be configured with an array", e.getMessage());
+			assertNotNull(e.getCause());
+		}
 	}
 
 	@Test
@@ -180,6 +247,20 @@ public class WhenceTest
 		Bean bean = w.pull("thing", Bean.class);
 		assertNotNull(bean);
 		assertEquals("manilla", bean.getProperty());
+	}
+
+	@Test
+	public void testMisformedReference() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing", new Hash()
+				.addEntry("property", "{{ strings.property"))
+			.addEntry("strings", new Hash()
+				.addEntry("property", "manilla")));
+
+		Bean bean = w.pull("thing", Bean.class);
+		assertNotNull(bean);
+		assertEquals("{{ strings.property", bean.getProperty());
 	}
 
 	@Test

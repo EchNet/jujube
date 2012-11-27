@@ -9,15 +9,15 @@ import net.ech.util.*;
 
 public class Whence
 {
+	private static Map<Class<?>,List<SubtypeDescriptor>> subtypeDescriptorMap = new HashMap<Class<?>,List<SubtypeDescriptor>>();
+
 	private DQuery document;
 	private Map<DPath,Object> cache;
-	private Map<Class<?>,List<SubtypeDescriptor>> subtypeDescriptorMap;
 
 	public Whence(Object document)
 	{
 		this.document = new DQuery(document);
 		this.cache = new HashMap<DPath,Object>();
-		this.subtypeDescriptorMap = new HashMap<Class<?>,List<SubtypeDescriptor>>();
 	}
 
 	public Object pull(String key)
@@ -85,16 +85,19 @@ public class Whence
 	private Object materializeList(DQuery dq, Class<?> requiredClass)
 		throws IOException
 	{
-		if (requiredClass != null && requiredClass.isArray()) {
-			Object result =  Array.newInstance(requiredClass.getComponentType(), ((List) dq.get()).size());
-			arrayProperties(dq, requiredClass.getComponentType(), result);
-			return result;
-		}
-		else {
+		if (Object.class.equals(requiredClass) || List.class.equals(requiredClass)) {
 			List<Object> result = new ArrayList<Object>();
 			listProperties(dq, result);
 			return result;
 		}
+
+		if (requiredClass.isArray()) {
+			Object result =  Array.newInstance(requiredClass.getComponentType(), ((List) dq.get()).size());
+			arrayProperties(dq, requiredClass.getComponentType(), result);
+			return result;
+		}
+
+		throw new IllegalArgumentException(requiredClass + " cannot be configured with an array");
 	}
 
 	private Class<?> findImplementationClass(DQuery dq, Class<?> requiredClass)
@@ -103,35 +106,41 @@ public class Whence
 		Class<?> implClass = dq.find("$class").isNull() ? requiredClass : Class.forName(dq.find("$class").require(String.class));
 
 		// Catch type mismatches.
-		if (requiredClass != null && !requiredClass.equals(implClass)) {
+		if (!requiredClass.equals(implClass)) {
 			implClass.asSubclass(requiredClass);  // throws ClassCastException
 		}
 
-		// If Object or Map is requested explicitly, return null to indicate that a Map should be instantiated.
 		if (Map.class.equals(implClass) || Object.class.equals(implClass)) {
+			// If Object or Map is requested explicitly, return null to indicate that a Map should be instantiated.
 			implClass = null;
 		}
-		if (implClass != null && implClass.isInterface()) {
+		else if (implClass.isInterface()) {
 			// Handle request for interface by looking up a matching subtype configuration descriptor.
-			boolean foundSubtype = false;
-		nextSubtype:
-			for (SubtypeDescriptor subtypeDescriptor : getSubtypeDescriptors(requiredClass)) {
-				for (ConfigPattern configPattern : subtypeDescriptor.getConfigPatterns()) {
-					if (!configPattern.matches(dq)) {
-						continue nextSubtype;
-					}
-				}
-				if (foundSubtype) {
-					throw new DocumentException(dq.getPath() + ": ambiguous subtype");
-				}
-				implClass = subtypeDescriptor.getSubtype();
-				foundSubtype = true;
-			}
-			if (!foundSubtype) {
-				throw new DocumentException(dq.getPath() + ": does not appear to configure a subtype of " + requiredClass);
-			}
+			implClass = findMatchingSubtype(dq, implClass);
 		}
 
+		return implClass;
+	}
+
+	private Class<?> findMatchingSubtype(DQuery dq, Class<?> baseClass)
+		throws DocumentException
+	{
+		Class<?> implClass = null;
+	nextSubtype:
+		for (SubtypeDescriptor subtypeDescriptor : getSubtypeDescriptors(baseClass)) {
+			for (ConfigPattern configPattern : subtypeDescriptor.getConfigPatterns()) {
+				if (!configPattern.matches(dq)) {
+					continue nextSubtype;
+				}
+			}
+			if (implClass != null) {
+				throw new DocumentException("ambiguous subtype");
+			}
+			implClass = subtypeDescriptor.getSubtype();
+		}
+		if (implClass == null) {
+			throw new DocumentException("does not appear to configure a subtype of " + baseClass);
+		}
 		return implClass;
 	}
 
@@ -142,7 +151,7 @@ public class Whence
 			public void handle(DQuery cdq) throws IOException {
 				String key = cdq.getPath().getLast().toString();
 				if (!key.startsWith("$")) {
-					map.put(key, snapReference(cdq, bpm == null ? null : bpm.getPropertyClass(key)));
+					map.put(key, snapReference(cdq, bpm == null ? Object.class : bpm.getPropertyClass(key)));
 				}
 			}
 		});
@@ -164,22 +173,24 @@ public class Whence
 	{
 		dq.each(new DHandler() {
 			public void handle(DQuery cdq) throws IOException {
-				result.add(snapReference(cdq, null));
+				result.add(snapReference(cdq, Object.class));
 			}
 		});
 	}
 
 	private List<SubtypeDescriptor> getSubtypeDescriptors(Class<?> iClass)
 	{
-		if (!subtypeDescriptorMap.containsKey(iClass)) {
+		synchronized (subtypeDescriptorMap) {
+			if (!subtypeDescriptorMap.containsKey(iClass)) {
 
-			SubtypeDescriptor[] subtypeDescriptors = SubtypeDescriptor.discover(iClass);
-			if (subtypeDescriptors == null) {
-				throw new IllegalArgumentException(iClass.getName() + " is an interface having no subtype descriptors");
+				SubtypeDescriptor[] subtypeDescriptors = SubtypeDescriptor.discover(iClass);
+				if (subtypeDescriptors == null) {
+					throw new IllegalArgumentException(iClass.getName() + " is an interface having no subtype descriptors");
+				}
+
+				subtypeDescriptorMap.put(iClass, Arrays.asList(subtypeDescriptors));
 			}
-
-			subtypeDescriptorMap.put(iClass, Arrays.asList(subtypeDescriptors));
+			return subtypeDescriptorMap.get(iClass);
 		}
-		return subtypeDescriptorMap.get(iClass);
 	}
 }

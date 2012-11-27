@@ -1,6 +1,6 @@
 package net.ech.config;
 
-public class Bean
+public class Bean implements IBean
 {
 	private String property;
 	public String getProperty() { return property; }

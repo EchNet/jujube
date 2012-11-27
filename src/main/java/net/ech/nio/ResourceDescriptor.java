@@ -6,9 +6,17 @@ import net.ech.util.*;
 /**
  * Configuration helper metadata.
  */
-public abstract class ResourceDescriptor
+public class ResourceDescriptor
+	extends TypeDescriptor
 {
-    public static SubtypeDescriptor[] getSubtypeDescriptors()
+	@Override
+	public Class<?> getType()
+	{
+		return Resource.class;
+	}
+
+	@Override
+    public SubtypeDescriptor[] getSubtypeDescriptors()
 	{
 		return new SubtypeDescriptor[] {
 			new SubtypeDescriptor(FileResource.class, new DPredicate() {

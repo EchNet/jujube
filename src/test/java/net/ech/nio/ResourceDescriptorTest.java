@@ -14,8 +14,6 @@ import static org.junit.Assert.fail;
 
 public class ResourceDescriptorTest
 {
-	private ResourceDescriptor dummy = new ResourceDescriptor() {};    // coverage
-
 	@Test
 	public void testCanTellAFileResourceConfigJustFromItsBase() throws Exception
 	{

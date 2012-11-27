@@ -2,9 +2,15 @@ package net.ech.config;
 
 import net.ech.util.*;
 
-public abstract class IBeanDescriptor
+public class IBeanDescriptor
+	extends TypeDescriptor
 {
-	public static SubtypeDescriptor[] getSubtypeDescriptors()
+	public Class<?> getType()
+	{
+		return IBean.class;
+	}
+
+	public SubtypeDescriptor[] getSubtypeDescriptors()
 	{
 		return new SubtypeDescriptor[] {
 			new SubtypeDescriptor(Bean.class, new DPredicate() {

@@ -163,9 +163,8 @@ public class WhenceTest
 			fail("should not be reached");
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing: java.util.List is an interface", e.getMessage());
+			assertEquals("cannot configure thing: java.util.List is an interface having no subtype descriptors", e.getMessage());
 			assertNotNull(e.getCause());
-			assertEquals("java.util.List is an interface", e.getCause().getMessage());
 		}
 	}
 

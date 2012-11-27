@@ -1,23 +1,13 @@
 {
 	service: {
 		serviceModules: [{
-			"$class": "net.ech.service.GetResourceServiceModule",
 			method: "GET",
 			path: "/dwarf",
-			resource: {
-				"$class": "net.ech.mongo.MongoCollectionResource",
-				collectionName: "dwarves",
-				mongoDatabase: {
-					"$class": "net.ech.mongo.MongoDatabase",
-					uri: "mongodb://localhost:27027/test"
-				}
-			}
+			resource: "{{ resources.dwarves }}"
 		},{
-			"$class": "net.ech.service.GetResourceServiceModule",
 			method: "GET",
 			path: "/",
 			resource: {
-				"$class": "net.ech.nio.UrlResource",
 				base: "http://ech.net/"
 			}
 		}],
@@ -26,5 +16,19 @@
 		},{
 			"$class": "net.ech.service.CacheControlPostProcessor"
 		}]
+	},
+
+	resources: {
+		dwarves: {
+			"$class": "net.ech.mongo.MongoCollectionResource",
+			collectionName: "dwarves",
+			mongoDatabase: "{{ mongoDatabases.localTest }}"
+		}
+	},
+
+	mongoDatabases: {
+		localTest: {
+			uri: "mongodb://localhost:27027/test"
+		}
 	}
 }

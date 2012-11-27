@@ -23,19 +23,9 @@ public class FileResource
 			setBase(base);
 		}
 
-		public Config(File base)
-		{
-			this.base = base;
-		}
-
 		public void setBase(String base)
 		{
 			this.base = new File(base);
-		}
-
-		public String getBase()
-		{
-			return base.getPath();
 		}
 
 		public void setExtension(String extension)
@@ -43,19 +33,9 @@ public class FileResource
 			this.extension = extension;
 		}
 
-		public String getExtension()
-		{
-			return extension;
-		}
-
 		public void setIgnoreQueryExtension(boolean ignoreQueryExtension)
 		{
 			this.ignoreQueryExtension = ignoreQueryExtension;
-		}
-
-		public boolean getIgnoreQueryExtension()
-		{
-			return ignoreQueryExtension;
 		}
 
 		public void setMimeType(String mimeType)
@@ -63,29 +43,14 @@ public class FileResource
 			this.mimeType = mimeType;
 		}
 
-		public String getMimeType()
-		{
-			return mimeType;
-		}
-
 		public void setCharacterEncoding(String characterEncoding)
 		{
 			this.characterEncoding = characterEncoding;
 		}
 
-		public String getCharacterEncoding()
-		{
-			return characterEncoding;
-		}
-
 		public void setCachePeriod(long cachePeriod)
 		{
 			this.cachePeriod = new Long(cachePeriod);
-		}
-
-		public long getCachePeriod()
-		{
-			return cachePeriod;
 		}
 	}
 

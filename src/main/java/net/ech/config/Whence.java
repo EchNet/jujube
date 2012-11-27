@@ -126,18 +126,16 @@ public class Whence
 		throws DocumentException
 	{
 		Class<?> implClass = null;
-	nextSubtype:
+
 		for (SubtypeDescriptor subtypeDescriptor : getSubtypeDescriptors(baseClass)) {
-			for (ConfigPattern configPattern : subtypeDescriptor.getConfigPatterns()) {
-				if (!configPattern.matches(dq)) {
-					continue nextSubtype;
+			if (subtypeDescriptor.getConfigPredicate().evaluate(dq)) {
+				if (implClass != null) {
+					throw new DocumentException("ambiguous subtype");
 				}
+				implClass = subtypeDescriptor.getSubtype();
 			}
-			if (implClass != null) {
-				throw new DocumentException("ambiguous subtype");
-			}
-			implClass = subtypeDescriptor.getSubtype();
 		}
+
 		if (implClass == null) {
 			throw new DocumentException("does not appear to configure a subtype of " + baseClass);
 		}

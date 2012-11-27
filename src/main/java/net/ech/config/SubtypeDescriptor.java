@@ -1,6 +1,7 @@
 package net.ech.config;
 
 import java.lang.reflect.*;
+import net.ech.util.DPredicate;
 
 /**
  * Support for the Subtypeable pattern.  
@@ -8,7 +9,7 @@ import java.lang.reflect.*;
 public class SubtypeDescriptor
 {
 	private Class<?> subtype;
-	private ConfigPattern[] configPatterns;
+	private DPredicate configPredicate;
 
 	public static SubtypeDescriptor[] discover(Class<?> type)
 	{
@@ -33,10 +34,10 @@ public class SubtypeDescriptor
 		return null;
 	}
 
-	public SubtypeDescriptor(Class<?> subtype, ConfigPattern[] configPatterns)
+	public SubtypeDescriptor(Class<?> subtype, DPredicate configPredicate)
 	{
 		this.subtype = subtype;
-		this.configPatterns = configPatterns;
+		this.configPredicate = configPredicate;
 	}
 
 	public Class<?> getSubtype()
@@ -44,8 +45,8 @@ public class SubtypeDescriptor
 		return subtype;
 	}
 
-	public ConfigPattern[] getConfigPatterns()
+	public DPredicate getConfigPredicate()
 	{
-		return configPatterns;
+		return configPredicate;
 	}
 }

@@ -1,20 +1,14 @@
-# hub project Makefile
+# jujube project Makefile
 
 all: clean build start
 
 build: 
-	mvn compile
+	mvn -q compile
 
 clean:
-	mvn clean
+	mvn -q clean
 
-test: stop 
-	mvn clean test
+test:
+	mvn -q clean test
 
-start: stop build 
-	./start.sh
-
-stop:
-	mvn jetty:stop
-
-.PHONY: all stop clean
+.PHONY: all clean

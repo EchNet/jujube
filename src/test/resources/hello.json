@@ -1,0 +1,52 @@
+{
+	"hello1": {
+		"_type": "com.swoop.test.PrintExecutor",
+		"sequences": {
+			"default": [
+				"hello",
+				"world",
+				"eol"
+			],
+			"backwards": [
+				"world",
+				"hello",
+				"eol"
+			],
+			"personal": [
+				"hello",
+				"user",
+				"eol"
+			]
+		},
+		"workers": {
+			"hello": {
+				"_type": "com.swoop.test.SysOutPrintWorker",
+				"string": "Hello"
+			},
+			"user": {
+				"_type": "com.swoop.test.SysOutPrintWorker",
+				"string": "Hello"
+			},
+			"world": {
+				"_type": "com.swoop.test.SysOutPrintWorker",
+				"string": "Hello"
+			},
+			"eol": {
+				"_type": "com.swoop.test.SysOutPrintlnWorker",
+			}
+		}
+	},
+
+	"hello2": {
+		"_type": "com.swoop.test.PrintExecutor",
+		"sequences": {
+			"default": [
+				"hello_world"
+			]
+		},
+		"workers": {
+			"hello_world": "com.swoop.test.SysOutPrintWorker",
+			"string": "Hello, World!\n"
+		}
+	}
+}

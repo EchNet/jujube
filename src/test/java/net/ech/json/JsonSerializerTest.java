@@ -1,4 +1,4 @@
-package net.ech.codec;
+package net.ech.json;
 
 import java.io.*;
 import java.util.*;
@@ -49,7 +49,7 @@ public class JsonSerializerTest
 
     private void expect(String expected, Object obj) throws IOException
     {
-		JsonCodec serializer = new JsonCodec();
+		JsonSerializer serializer = new JsonSerializer();
         String jsonString = serializer.encode(obj);
         assertEquals(expected, jsonString);
     }

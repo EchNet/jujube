@@ -1,22 +1,23 @@
-# hub #
+# jujube #
 
-A Web service aggregator.
+Jujube is a simple JSON-based service framework.
 
-## Features ##
+JSON documents are stored in memory using a light, generic representation.  Jujube's
+in-memory document representation is compatible with other JSON processors, such as the
+MongoDB driver for Java.
 
-- JSON-based dependency injection
-- Dynamic reconfiguration without pause in service
-- Support for the full range of content types
-- JSON and Javascript response templates (non-JSP)
-- Stream if possible, buffer if necessary
-- Built-in MongoDB and Redis (Resque) integration
+Features:
 
-## Applications ##
+- A lightweight, JSON-based dependency injection mechanism.
 
-- Aggregation of multiple Web APIs.
-- Origin server for content distribution.
+## Project and Dependencies ##
 
-## Implementation ##
+Jujube is a Java project.  Maven build files are included.
 
-This is a Java / Maven project.  Compatible with Java Servlet Framework.  Based on Jetty.
-Uses Jetty Maven plugin (for now).
+Jujube depends on the Jackson JSON Processor.
+
+Jujube is designed with Web frameworks in mind, but is independent of any particular Web
+framework.
+
+Jujube's in-memory document representation is compatible with the unmapped output of the 
+MongoDB driver for Java, but the core Jujube modules do not depend on the MongoDB driver.

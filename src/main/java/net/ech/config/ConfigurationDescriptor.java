@@ -26,7 +26,7 @@ import java.lang.reflect.*;
  *
  * Benefit: better handling of defaults for configuration values.
  *
- * Issue: how to handle non-optional configuraiton values. 
+ * Issue: how to handle non-optional configuration values. 
  */
 public class ConfigurationDescriptor
 {

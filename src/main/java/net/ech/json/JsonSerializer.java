@@ -1,28 +1,18 @@
-package net.ech.codec;
+package net.ech.json;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Array;
-import java.net.*;
-import java.util.*;
-import net.ech.util.*;
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * A really simple JSON codec based on Jackson.
+ * A really simple JSON serializer.
  */
-public class JsonCodec
-	extends AbstractTextCodec
-	implements Codec
+public class JsonSerializer
 {
-	private static JsonFactory jsonFactory;
-	static {
-		jsonFactory = new JsonFactory();
-		jsonFactory.setCodec(new ObjectMapper());
-		jsonFactory.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
-		jsonFactory.enable(JsonParser.Feature.ALLOW_COMMENTS);
-	}
-
 	private Map<Class,Formatter> formatters = new HashMap<Class,Formatter>();
 
 	public static interface Serializer
@@ -36,14 +26,8 @@ public class JsonCodec
 		public void write(Object obj, Serializer serializer) throws IOException;
 	}
 
-	public JsonCodec()
+	public JsonSerializer()
 	{
-		initFormatters();
-	}
-
-	public JsonCodec(String characterEncoding)
-	{
-		super(characterEncoding);
 		initFormatters();
 	}
 
@@ -55,41 +39,15 @@ public class JsonCodec
 		formatters.put(String.class, new StringFormatter());
 	}
 
-	@Override
-	public String getContentType()
-	{
-		return "application/json";
-	}
-
-	@Override
-	public Object decode(InputStream input)
-		throws IOException
-	{
-		return jsonFactory.createJsonParser(input).readValueAs(Object.class);
-	}
-
-	public Object decode(Reader input)
-		throws IOException
-	{
-		return jsonFactory.createJsonParser(input).readValueAs(Object.class);
-	}
-
-	public Object decode(String text)
-		throws IOException
-	{
-		return decode(new StringReader(text));
-	}
-
 	public String encode(Object obj)
 		throws IOException
 	{
 		StringWriter buf = new StringWriter();
-		encode(obj, buf);
+		write(obj, buf);
 		return buf.toString();
 	}
 
-	@Override
-	public void encode (Object obj, final Writer writer)
+	public void write (Object obj, final Writer writer)
 		throws IOException
 	{
 		new Serializer()
@@ -108,15 +66,6 @@ public class JsonCodec
 				return writer;
 			}
 		}.serialize(obj);
-	}
-
-	@Override
-	public void encode (Object obj, OutputStream outputStream)
-		throws IOException
-	{
-		Writer writer = new OutputStreamWriter(outputStream, getCharacterEncoding());
-		encode(obj, writer);
-		writer.flush();
 	}
 
 	private Formatter getFormatter(Object obj)
@@ -240,11 +189,9 @@ public class JsonCodec
 				break;
 			case '/':
 				if (i == 0 || i == s.length() - 1) {
-					writer.write("\\/");
+					writer.write("\\");
 				}
-				else {
-					writer.write("/");
-				}
+				writer.write("/");
 				break;
 			default:
 				//Reference: http://www.unicode.org/versions/Unicode5.1.0/

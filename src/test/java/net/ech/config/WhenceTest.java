@@ -20,7 +20,7 @@ public class WhenceTest
 			w.configure("thing", Object.class);
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing: no such key", e.getMessage());
+			assertEquals("thing: no such key", e.getMessage());
 		}
 	}
 
@@ -275,5 +275,22 @@ public class WhenceTest
 		assertNotNull(bean1);
 		assertEquals("manilla", bean1.getProperty());
 		assertTrue("not same bean", bean1 == bean2);
+	}
+
+	@Test
+	public void testExtends() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing1", new Hash()
+				.addEntry("prop1", "a")
+				.addEntry("prop2", "b"))
+			.addEntry("thing2", new Hash()
+				.addEntry("_extends", "thing1")
+				.addEntry("prop2", "bee")
+				.addEntry("prop3", "c")));
+		Map<String,String> bean = w.configure("thing2", Map.class);
+		assertEquals("a", bean.get("prop1"));
+		assertEquals("bee", bean.get("prop2"));
+		assertEquals("c", bean.get("prop3"));
 	}
 }

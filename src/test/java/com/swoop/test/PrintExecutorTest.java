@@ -32,7 +32,7 @@ public class PrintExecutorTest
 			w.configure("thing", Object.class);
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing: no such key", e.getMessage());
+			assertEquals("thing: no such key", e.getMessage());
 		}
 	}
 

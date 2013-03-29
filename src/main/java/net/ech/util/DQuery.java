@@ -167,12 +167,12 @@ public class DQuery
 			// Merge two maps into one.
 			//
 			Set<String> keys = new HashSet<String>();
-			keys.addAll(((Map<String,Object>) stuff).keySet());
 			keys.addAll(((Map<String,Object>) operand.stuff).keySet());
+			keys.addAll(((Map<String,Object>) stuff).keySet());
 			Map<String,Object> resultMap = new HashMap<String,Object>();
 			for (String key : keys) {
 				DPath keyPath = new DPath(key);
-				resultMap.put(key, find(keyPath).extend(operand.find(keyPath)).get());
+				resultMap.put(key, operand.find(keyPath).extend(find(keyPath)).get());
 			}
 			return new DQuery(resultMap);
 		}

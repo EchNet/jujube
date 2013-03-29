@@ -28,16 +28,18 @@ public class Whence
 	public <T> T configure(String key, Class<T> requiredClass)
 		throws IOException
 	{
-		return requiredClass.cast(snapReference(document.find(key), requiredClass));
+		DQuery doc = document.find(key);
+		if (doc.isNull()) {
+			throw new DocumentException(key + ": no such key");
+		}
+		return requiredClass.cast(snapReference(doc, requiredClass));
 	}
 
 	private Object snapReference(DQuery dq, Class<?> requiredClass)
 		throws IOException
 	{
 		try {
-			if (dq.isNull()) {
-				throw new DocumentException("no such key");
-			}
+			dq = fillDocument(dq);
 
 			String ref = dq.get(String.class);
 			if (ref != null && ref.startsWith("{{") && ref.endsWith("}}")) {
@@ -61,6 +63,20 @@ public class Whence
 		catch (Exception e) {
 			throw new IOException("cannot configure " + dq.getPath() + ": " + e.getMessage(), e);
 		}
+	}
+
+	private DQuery fillDocument(DQuery dq)
+		throws IOException
+	{
+		String superDocKey = dq.find("_extends").get(String.class);
+		if (superDocKey != null) {
+			DQuery superDoc = document.find(superDocKey);
+			if (superDoc.isNull()) {
+				throw new DocumentException(superDocKey + ": (_extends) no such key");
+			}
+			dq = dq.extend(fillDocument(superDoc));
+		}
+		return dq;
 	}
 
 	private Object materializeMap(DQuery dq, Class<?> requiredClass)

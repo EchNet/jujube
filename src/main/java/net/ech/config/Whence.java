@@ -19,13 +19,13 @@ public class Whence
 		this.cache = new HashMap<DPath,Object>();
 	}
 
-	public Object pull(String key)
+	public Object configure(String key)
 		throws IOException
 	{
-		return pull(key, Object.class);
+		return configure(key, Object.class);
 	}
 
-	public <T> T pull(String key, Class<T> requiredClass)
+	public <T> T configure(String key, Class<T> requiredClass)
 		throws IOException
 	{
 		return requiredClass.cast(snapReference(document.find(key), requiredClass));
@@ -102,7 +102,7 @@ public class Whence
 	private Class<?> findImplementationClass(DQuery dq, Class<?> requiredClass)
 		throws Exception
 	{
-		Class<?> implClass = dq.find("$class").isNull() ? requiredClass : Class.forName(dq.find("$class").require(String.class));
+		Class<?> implClass = dq.find("_type").isNull() ? requiredClass : Class.forName(dq.find("_type").require(String.class));
 
 		// Catch type mismatches.
 		if (!requiredClass.equals(implClass)) {
@@ -147,7 +147,7 @@ public class Whence
 		dq.each(new DHandler() {
 			public void handle(DQuery cdq) throws IOException {
 				String key = cdq.getPath().getLast().toString();
-				if (!key.startsWith("$")) {
+				if (!key.startsWith("_")) {
 					map.put(key, snapReference(cdq, bpm == null ? Object.class : bpm.getPropertyClass(key)));
 				}
 			}

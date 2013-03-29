@@ -13,7 +13,7 @@ public class JsonDeserializer
 {
 	private JsonFactory jsonFactory;
 
-	JsonDeserializer()
+	public JsonDeserializer()
 	{
 		jsonFactory = new JsonFactory();
 		jsonFactory.setCodec(new ObjectMapper());

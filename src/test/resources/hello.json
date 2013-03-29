@@ -1,7 +1,9 @@
+// A test of JSON dependency injection.
 {
+	// hello1 is a top-level configuration document.
 	"hello1": {
-		"_type": "com.swoop.test.PrintExecutor",
-		"sequences": {
+		"_type": "com.swoop.test.PrintExecutor",  // A special purpose executor.
+		"sequences": {    // Sequences express order of operation.
 			"default": [
 				"hello",
 				"world",
@@ -18,34 +20,41 @@
 				"eol"
 			]
 		},
-		"workers": {
+		"workers": {  // Workers express operations.
 			"hello": {
-				"_type": "com.swoop.test.SysOutPrintWorker",
+				"_type": "com.swoop.test.PrintStringWorker",
 				"string": "Hello"
 			},
 			"user": {
-				"_type": "com.swoop.test.SysOutPrintWorker",
+				"_type": "com.swoop.test.PrintStringWorker",
 				"string": "Hello"
 			},
 			"world": {
-				"_type": "com.swoop.test.SysOutPrintWorker",
+				"_type": "com.swoop.test.PrintStringWorker",
 				"string": "Hello"
 			},
 			"eol": {
-				"_type": "com.swoop.test.SysOutPrintlnWorker",
+				"_type": "com.swoop.test.PrintlnWorker"
 			}
 		}
 	},
 
+	// hello2 is a top-level configuration document.
 	"hello2": {
-		"_type": "com.swoop.test.PrintExecutor",
+		"_extends": "hello1", // It extends hello1.
 		"sequences": {
-			"default": [
+			"default": [  // It overrides the "default" sequence.
+				"hello",
+				"eol",
+				"world",
+				"eol"
+			],
+			"alt": [  // It adds a sequence of its own.
 				"hello_world"
 			]
 		},
-		"workers": {
-			"hello_world": "com.swoop.test.SysOutPrintWorker",
+		"workers": {  // It adds a worker.
+			"hello_world": "com.swoop.test.PrintStringWorker",
 			"string": "Hello, World!\n"
 		}
 	}

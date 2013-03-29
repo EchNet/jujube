@@ -17,7 +17,7 @@ public class WhenceTest
 	{
 		try {
 			Whence w = new Whence(new Hash());
-			w.pull("thing", Object.class);
+			w.configure("thing", Object.class);
 		}
 		catch (IOException e) {
 			assertEquals("cannot configure thing: no such key", e.getMessage());
@@ -31,7 +31,7 @@ public class WhenceTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla")));
 
-		SimpleConfigurable bean = w.pull("thing", SimpleConfigurable.class);
+		SimpleConfigurable bean = w.configure("thing", SimpleConfigurable.class);
 		assertNotNull(bean);
 		assertEquals("manilla", bean.getProperty());
 	}
@@ -41,10 +41,10 @@ public class WhenceTest
 	{
 		Whence w = new Whence(new Hash()
 			.addEntry("thing", new Hash()
-				.addEntry("$class", "net.ech.config.SimpleConfigurable")
+				.addEntry("_type", "net.ech.config.SimpleConfigurable")
 				.addEntry("property", "manilla")));
 
-		Object bean = w.pull("thing", Object.class);
+		Object bean = w.configure("thing", Object.class);
 		assertNotNull(bean);
 		assertTrue(bean instanceof SimpleConfigurable);
 		assertEquals("manilla", ((SimpleConfigurable) bean).getProperty());
@@ -57,7 +57,7 @@ public class WhenceTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla")));
 
-		Object bean = w.pull("thing");
+		Object bean = w.configure("thing");
 		assertNotNull(bean);
 		assertTrue(bean instanceof Map);
 		assertEquals("manilla", ((Map<String,Object>)bean).get("property"));
@@ -70,7 +70,7 @@ public class WhenceTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla")));
 
-		Object bean = w.pull("thing", Object.class);
+		Object bean = w.configure("thing", Object.class);
 		assertNotNull(bean);
 		assertTrue(bean instanceof Map);
 		assertEquals("manilla", ((Map<String,Object>)bean).get("property"));
@@ -83,7 +83,7 @@ public class WhenceTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla")));
 
-		Map<String,Object> bean = w.pull("thing", Map.class);
+		Map<String,Object> bean = w.configure("thing", Map.class);
 		assertNotNull(bean);
 		assertEquals("manilla", bean.get("property"));
 	}
@@ -95,7 +95,7 @@ public class WhenceTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla")));
 
-		Bean bean = w.pull("thing", Bean.class);
+		Bean bean = w.configure("thing", Bean.class);
 		assertNotNull(bean);
 		assertEquals("manilla", bean.getProperty());
 	}
@@ -107,7 +107,7 @@ public class WhenceTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla")));
 
-		IBean bean = w.pull("thing", IBean.class);
+		IBean bean = w.configure("thing", IBean.class);
 		assertNotNull(bean);
 		assertTrue(bean instanceof Bean);
 		assertEquals("manilla", ((Bean)bean).getProperty());
@@ -121,7 +121,7 @@ public class WhenceTest
 				.addEntry("mopperty", "manilla")));
 
 		try {
-			w.pull("thing", IBean.class);
+			w.configure("thing", IBean.class);
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -139,7 +139,7 @@ public class WhenceTest
 				.addEntry("properly", "manilla")));
 
 		try {
-			w.pull("thing", IBean.class);
+			w.configure("thing", IBean.class);
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -157,7 +157,7 @@ public class WhenceTest
 				new Hash("property", "vanilla")
 			})));
 
-		Object obj = w.pull("thing");
+		Object obj = w.configure("thing");
 		assertNotNull(obj);
 		assertTrue(obj instanceof List);
 		assertEquals(2, ((List<?>) obj).size());
@@ -174,7 +174,7 @@ public class WhenceTest
 				new Hash("property", "vanilla")
 			})));
 
-		Object obj = w.pull("thing", List.class);
+		Object obj = w.configure("thing", List.class);
 		assertNotNull(obj);
 		assertTrue(obj instanceof List);
 		assertEquals(2, ((List<?>) obj).size());
@@ -191,7 +191,7 @@ public class WhenceTest
 				new Hash("property", "vanilla")
 			})));
 
-		Object obj = w.pull("thing", Bean[].class);
+		Object obj = w.configure("thing", Bean[].class);
 		assertNotNull(obj);
 		assertTrue(obj instanceof Bean[]);
 		assertEquals(2, ((Bean[]) obj).length);
@@ -209,7 +209,7 @@ public class WhenceTest
 			})));
 
 		try {
-			w.pull("thing", Bean.class);
+			w.configure("thing", Bean.class);
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -226,7 +226,7 @@ public class WhenceTest
 				.addEntry("property", "manilla")));
 
 		try {
-			w.pull("thing", List.class);
+			w.configure("thing", List.class);
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -244,7 +244,7 @@ public class WhenceTest
 			.addEntry("strings", new Hash()
 				.addEntry("property", "manilla")));
 
-		Bean bean = w.pull("thing", Bean.class);
+		Bean bean = w.configure("thing", Bean.class);
 		assertNotNull(bean);
 		assertEquals("manilla", bean.getProperty());
 	}
@@ -258,7 +258,7 @@ public class WhenceTest
 			.addEntry("strings", new Hash()
 				.addEntry("property", "manilla")));
 
-		Bean bean = w.pull("thing", Bean.class);
+		Bean bean = w.configure("thing", Bean.class);
 		assertNotNull(bean);
 		assertEquals("{{ strings.property", bean.getProperty());
 	}
@@ -270,8 +270,8 @@ public class WhenceTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla")));
 
-		Bean bean1 = w.pull("thing", Bean.class);
-		Bean bean2 = w.pull("thing", Bean.class);
+		Bean bean1 = w.configure("thing", Bean.class);
+		Bean bean2 = w.configure("thing", Bean.class);
 		assertNotNull(bean1);
 		assertEquals("manilla", bean1.getProperty());
 		assertTrue("not same bean", bean1 == bean2);

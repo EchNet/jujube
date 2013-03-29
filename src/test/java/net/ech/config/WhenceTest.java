@@ -293,4 +293,17 @@ public class WhenceTest
 		assertEquals("bee", bean.get("prop2"));
 		assertEquals("c", bean.get("prop3"));
 	}
+
+	@Test
+	public void testRecursiveExtends() throws Exception
+	{
+		Whence w = new Whence(new Hash()
+			.addEntry("thing1", new Hash()
+				.addEntry("hash", new Hash("x", 1).addEntry("y", 2)))
+			.addEntry("thing2", new Hash()
+				.addEntry("_extends", "thing1")
+				.addEntry("hash", new Hash("x", 0))));
+		Map<String,Object> bean = w.configure("thing2", Map.class);
+		assertEquals(new Integer(0), ((Map<String,Object>)bean.get("hash")).get("x"));
+	}
 }

@@ -609,6 +609,11 @@ public class DQueryTest
 		assertEquals("hi", new DQuery("hi").toString());
 	}
 
+	@Test
+	public void testExtend() throws Exception
+	{
+	}
+
 	private Hash hashTree(int depth)
 	{
 		Hash hash = new Hash();

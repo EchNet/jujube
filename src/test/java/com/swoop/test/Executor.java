@@ -4,5 +4,6 @@ import java.util.Map;
 
 public interface Executor
 {
-	public void run(Map<String,String> parameters);
+	public Executor run();
+	public Executor run(Map<String,String> parameters);
 }

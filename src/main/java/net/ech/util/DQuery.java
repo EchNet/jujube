@@ -172,18 +172,15 @@ public class DQuery
 			Map<String,Object> resultMap = new HashMap<String,Object>();
 			for (String key : keys) {
 				DPath keyPath = new DPath(key);
-				resultMap.put(key, operand.find(keyPath).extend(find(keyPath)).get());
+				resultMap.put(key, find(keyPath).extend(operand.find(keyPath)).get());
 			}
 			return new DQuery(resultMap);
 		}
-		else if (operand.stuff != null) {
-			//
-			// In all other cases, favor the right hand side.  Handling of lists is an open issue.
-			//
-			return operand.copyDoc();
-		}
 
-		return copyDoc();
+		//
+		// In all other cases, favor the left hand side.  This includes lists for now.
+		//
+		return stuff == null ? operand.copyDoc() : copyDoc();
 	}
 
 	/**

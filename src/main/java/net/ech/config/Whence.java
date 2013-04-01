@@ -3,50 +3,49 @@ package net.ech.config;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.TypeVariable;
-import java.util.*;
-import net.ech.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import net.ech.doc.Document;
+import net.ech.doc.DocumentException;
+import net.ech.doc.DocumentLoader;
+import net.ech.doc.DocPath;
+import net.ech.util.BeanPropertyMap;
 
 public class Whence
 {
 	private static Map<Class<?>,List<SubtypeDescriptor>> subtypeDescriptorMap = new HashMap<Class<?>,List<SubtypeDescriptor>>();
 
-	private DQuery document;
-	private Map<DPath,Object> cache;
+	private Document document;
+	private DocumentLoader documentLoader;
+	private Map<DocPath,Object> cache;
 
-	public Whence(Object document)
+	public Whence(Document document, DocumentLoader documentLoader)
 	{
-		this.document = new DQuery(document);
-		this.cache = new HashMap<DPath,Object>();
+		this.document = document;
+		this.documentLoader = documentLoader;
+		this.cache = new HashMap<DocPath,Object>();
 	}
 
-	public Object configure(String key)
+	public Object configure()
 		throws IOException
 	{
-		return configure(key, Object.class);
+		return configure(Object.class);
 	}
 
-	public <T> T configure(String key, Class<T> requiredClass)
+	public <T> T configure(Class<T> requiredClass)
 		throws IOException
 	{
-		DQuery doc = document.find(key);
-		if (doc.isNull()) {
-			throw new DocumentException(key + ": no such key");
-		}
-		return requiredClass.cast(snapReference(doc, requiredClass));
+		return requiredClass.cast(snapReference(document, requiredClass));
 	}
 
-	private Object snapReference(DQuery dq, Class<?> requiredClass)
+	private Object snapReference(Document dq, Class<?> requiredClass)
 		throws IOException
 	{
 		try {
 			dq = fillDocument(dq);
-
-			String ref = dq.get(String.class);
-			if (ref != null && ref.startsWith("{{") && ref.endsWith("}}")) {
-				ref = ref.substring(0, ref.length() - 2).substring(2).trim();
-				// TODO: cycle prevention
-				return snapReference(document.find(ref), requiredClass);
-			}
 
 			if (dq.get(Map.class) == null && dq.get(List.class) == null) {
 				return dq.get();
@@ -65,12 +64,12 @@ public class Whence
 		}
 	}
 
-	private DQuery fillDocument(DQuery dq)
+	private Document fillDocument(Document dq)
 		throws IOException
 	{
 		String superDocKey = dq.find("_extends").get(String.class);
 		if (superDocKey != null) {
-			DQuery superDoc = document.find(superDocKey);
+			Document superDoc = documentLoader.load(superDocKey);
 			if (superDoc.isNull()) {
 				throw new DocumentException(superDocKey + ": (_extends) no such key");
 			}
@@ -79,7 +78,7 @@ public class Whence
 		return dq;
 	}
 
-	private Object materializeMap(DQuery dq, Class<?> requiredClass)
+	private Object materializeMap(Document dq, Class<?> requiredClass)
 		throws Exception
 	{
 		Class<?> implClass = findImplementationClass(dq, requiredClass);
@@ -97,7 +96,7 @@ public class Whence
 		return configDesc == null ? obj : configDesc.getConstructor().newInstance(obj);
 	}
 
-	private Object materializeList(DQuery dq, Class<?> requiredClass)
+	private Object materializeList(Document dq, Class<?> requiredClass)
 		throws IOException
 	{
 		if (Object.class.equals(requiredClass) || List.class.equals(requiredClass)) {
@@ -115,7 +114,7 @@ public class Whence
 		throw new IllegalArgumentException(requiredClass + " cannot be configured with an array");
 	}
 
-	private Class<?> findImplementationClass(DQuery dq, Class<?> requiredClass)
+	private Class<?> findImplementationClass(Document dq, Class<?> requiredClass)
 		throws Exception
 	{
 		Class<?> implClass = dq.find("_type").isNull() ? requiredClass : Class.forName(dq.find("_type").require(String.class));
@@ -137,7 +136,7 @@ public class Whence
 		return implClass;
 	}
 
-	private Class<?> findMatchingSubtype(DQuery dq, Class<?> baseClass)
+	private Class<?> findMatchingSubtype(Document dq, Class<?> baseClass)
 		throws DocumentException
 	{
 		Class<?> implClass = null;
@@ -157,38 +156,32 @@ public class Whence
 		return implClass;
 	}
 
-	private void mapProperties(final DQuery dq, final BeanPropertyMap bpm, final Map<String,Object> map)
+	private void mapProperties(Document dq, BeanPropertyMap bpm, Map<String,Object> map)
 		throws IOException
 	{
-		dq.each(new DHandler() {
-			public void handle(DQuery cdq) throws IOException {
-				String key = cdq.getPath().getLast().toString();
-				if (!key.startsWith("_")) {
-					map.put(key, snapReference(cdq, bpm == null ? Object.class : bpm.getPropertyClass(key)));
-				}
+		for (Document cdq : dq.children()) {
+			String key = cdq.getPath().getLast().toString();
+			if (!key.startsWith("_")) {
+				map.put(key, snapReference(cdq, bpm == null ? Object.class : bpm.getPropertyClass(key)));
 			}
-		});
+		}
 	}
 
-	private void arrayProperties(final DQuery dq, final Class<?> implElementClass, final Object result)
+	private void arrayProperties(Document dq, Class<?> implElementClass, Object result)
 		throws IOException
 	{
-		dq.each(new DHandler() {
-			int index = 0;
-			public void handle(DQuery cdq) throws IOException {
-				Array.set(result, index++, snapReference(cdq, implElementClass));
-			}
-		});
+		int index = 0;
+		for (Document cdq : dq.children()) {
+			Array.set(result, index++, snapReference(cdq, implElementClass));
+		}
 	}
 
-	private void listProperties(final DQuery dq, final List<Object> result)
+	private void listProperties(Document dq, List<Object> result)
 		throws IOException
 	{
-		dq.each(new DHandler() {
-			public void handle(DQuery cdq) throws IOException {
-				result.add(snapReference(cdq, Object.class));
-			}
-		});
+		for (Document cdq : dq.children()) {
+			result.add(snapReference(cdq, Object.class));
+		}
 	}
 
 	private List<SubtypeDescriptor> getSubtypeDescriptors(Class<?> iClass)

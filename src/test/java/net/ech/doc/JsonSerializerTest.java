@@ -1,4 +1,4 @@
-package net.ech.json;
+package net.ech.doc;
 
 import java.io.*;
 import java.util.*;

@@ -2,6 +2,8 @@ package net.ech.config;
 
 import java.io.*;
 import java.util.*;
+import net.ech.doc.ChildDocumentLoader;
+import net.ech.doc.Document;
 import net.ech.util.*;
 import org.junit.*;
 import static org.junit.Assert.assertEquals;
@@ -16,8 +18,7 @@ public class WhenceTest
 	public void testNotFoundCase() throws Exception
 	{
 		try {
-			Whence w = new Whence(new Hash());
-			w.configure("thing", Object.class);
+			configure("thing", Object.class, new Hash());
 		}
 		catch (IOException e) {
 			assertEquals("thing: no such key", e.getMessage());
@@ -27,11 +28,10 @@ public class WhenceTest
 	@Test
 	public void testPositiveConfigurableClassCalledFor() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")));
-
-		SimpleConfigurable bean = w.configure("thing", SimpleConfigurable.class);
+		SimpleConfigurable bean = configure("thing", SimpleConfigurable.class,
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("property", "manilla")));
 		assertNotNull(bean);
 		assertEquals("manilla", bean.getProperty());
 	}
@@ -39,12 +39,12 @@ public class WhenceTest
 	@Test
 	public void testPositiveConfigurableClassIdentifiedInConfig() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("_type", "net.ech.config.SimpleConfigurable")
-				.addEntry("property", "manilla")));
+		Object bean = configure("thing", Object.class,
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("_type", "net.ech.config.SimpleConfigurable")
+					.addEntry("property", "manilla")));
 
-		Object bean = w.configure("thing", Object.class);
 		assertNotNull(bean);
 		assertTrue(bean instanceof SimpleConfigurable);
 		assertEquals("manilla", ((SimpleConfigurable) bean).getProperty());
@@ -53,11 +53,10 @@ public class WhenceTest
 	@Test
 	public void testPositiveGeneric() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")));
-
-		Object bean = w.configure("thing");
+		Object bean = configure("thing",
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("property", "manilla")));
 		assertNotNull(bean);
 		assertTrue(bean instanceof Map);
 		assertEquals("manilla", ((Map<String,Object>)bean).get("property"));
@@ -66,11 +65,10 @@ public class WhenceTest
 	@Test
 	public void testPositiveGenericAsObject() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")));
-
-		Object bean = w.configure("thing", Object.class);
+		Object bean = configure("thing", Object.class,
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("property", "manilla")));
 		assertNotNull(bean);
 		assertTrue(bean instanceof Map);
 		assertEquals("manilla", ((Map<String,Object>)bean).get("property"));
@@ -79,11 +77,10 @@ public class WhenceTest
 	@Test
 	public void testPositiveGenericAsMap() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")));
-
-		Map<String,Object> bean = w.configure("thing", Map.class);
+		Map<String,Object> bean = configure("thing", Map.class,
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("property", "manilla")));
 		assertNotNull(bean);
 		assertEquals("manilla", bean.get("property"));
 	}
@@ -91,11 +88,10 @@ public class WhenceTest
 	@Test
 	public void testPositiveBean() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")));
-
-		Bean bean = w.configure("thing", Bean.class);
+		Bean bean = configure("thing", Bean.class,
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("property", "manilla")));
 		assertNotNull(bean);
 		assertEquals("manilla", bean.getProperty());
 	}
@@ -103,11 +99,10 @@ public class WhenceTest
 	@Test
 	public void testPositiveBeanAsSubtype() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")));
-
-		IBean bean = w.configure("thing", IBean.class);
+		IBean bean = configure("thing", IBean.class,
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("property", "manilla")));
 		assertNotNull(bean);
 		assertTrue(bean instanceof Bean);
 		assertEquals("manilla", ((Bean)bean).getProperty());
@@ -116,12 +111,11 @@ public class WhenceTest
 	@Test
 	public void testNegativeBeanAsUnknownSubtype() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("mopperty", "manilla")));
-
 		try {
-			w.configure("thing", IBean.class);
+			configure("thing", IBean.class,
+				new Hash()
+					.addEntry("thing", new Hash()
+						.addEntry("mopperty", "manilla")));
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -133,13 +127,12 @@ public class WhenceTest
 	@Test
 	public void testNegativeBeanAsAmbiguousSubtype() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")
-				.addEntry("properly", "manilla")));
-
 		try {
-			w.configure("thing", IBean.class);
+			configure("thing", IBean.class, 
+				new Hash()
+					.addEntry("thing", new Hash()
+						.addEntry("property", "manilla")
+						.addEntry("properly", "manilla")));
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -151,13 +144,12 @@ public class WhenceTest
 	@Test
 	public void testPositiveArrayAsObject() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", Arrays.asList(new Object[] {
-				new Hash("property", "manilla"),
-				new Hash("property", "vanilla")
-			})));
-
-		Object obj = w.configure("thing");
+		Object obj = configure("thing", 
+			new Hash()
+				.addEntry("thing", Arrays.asList(new Object[] {
+					new Hash("property", "manilla"),
+					new Hash("property", "vanilla")
+				})));
 		assertNotNull(obj);
 		assertTrue(obj instanceof List);
 		assertEquals(2, ((List<?>) obj).size());
@@ -168,13 +160,12 @@ public class WhenceTest
 	@Test
 	public void testPositiveArrayAsList() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", Arrays.asList(new Object[] {
-				new Hash("property", "manilla"),
-				new Hash("property", "vanilla")
-			})));
-
-		Object obj = w.configure("thing", List.class);
+		Object obj = configure("thing", List.class,
+			new Hash()
+				.addEntry("thing", Arrays.asList(new Object[] {
+					new Hash("property", "manilla"),
+					new Hash("property", "vanilla")
+				})));
 		assertNotNull(obj);
 		assertTrue(obj instanceof List);
 		assertEquals(2, ((List<?>) obj).size());
@@ -185,13 +176,12 @@ public class WhenceTest
 	@Test
 	public void testPositiveListArrayAsArray() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", Arrays.asList(new Object[] {
-				new Hash("property", "manilla"),
-				new Hash("property", "vanilla")
-			})));
-
-		Object obj = w.configure("thing", Bean[].class);
+		Object obj = configure("thing", Bean[].class,
+			new Hash()
+				.addEntry("thing", Arrays.asList(new Object[] {
+					new Hash("property", "manilla"),
+					new Hash("property", "vanilla")
+				})));
 		assertNotNull(obj);
 		assertTrue(obj instanceof Bean[]);
 		assertEquals(2, ((Bean[]) obj).length);
@@ -202,14 +192,13 @@ public class WhenceTest
 	@Test
 	public void testNegativeListArrayAsBean() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", Arrays.asList(new Object[] {
-				new Hash("property", "manilla"),
-				new Hash("property", "vanilla")
-			})));
-
 		try {
-			w.configure("thing", Bean.class);
+			configure("thing", Bean.class,
+				new Hash()
+					.addEntry("thing", Arrays.asList(new Object[] {
+						new Hash("property", "manilla"),
+						new Hash("property", "vanilla")
+					})));
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -221,12 +210,11 @@ public class WhenceTest
 	@Test
 	public void testNegativeInterface() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")));
-
 		try {
-			w.configure("thing", List.class);
+			configure("thing", List.class,
+				new Hash()
+					.addEntry("thing", new Hash()
+						.addEntry("property", "manilla")));
 			fail("should not be reached");
 		}
 		catch (IOException e) {
@@ -236,42 +224,15 @@ public class WhenceTest
 	}
 
 	@Test
-	public void testSimpleReference() throws Exception
-	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "{{ strings.property }}"))
-			.addEntry("strings", new Hash()
-				.addEntry("property", "manilla")));
-
-		Bean bean = w.configure("thing", Bean.class);
-		assertNotNull(bean);
-		assertEquals("manilla", bean.getProperty());
-	}
-
-	@Test
-	public void testMisformedReference() throws Exception
-	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "{{ strings.property"))
-			.addEntry("strings", new Hash()
-				.addEntry("property", "manilla")));
-
-		Bean bean = w.configure("thing", Bean.class);
-		assertNotNull(bean);
-		assertEquals("{{ strings.property", bean.getProperty());
-	}
-
-	@Test
 	public void testCachedObject() throws Exception
 	{
-		Whence w = new Whence(new Hash()
+		Hash hash = new Hash()
 			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla")));
-
-		Bean bean1 = w.configure("thing", Bean.class);
-		Bean bean2 = w.configure("thing", Bean.class);
+				.addEntry("property", "manilla"));
+		Document doc = new Document(hash);
+		Whence w = new Whence(doc.find("thing"), new ChildDocumentLoader(doc, ""));
+		Bean bean1 = w.configure(Bean.class);
+		Bean bean2 = w.configure(Bean.class);
 		assertNotNull(bean1);
 		assertEquals("manilla", bean1.getProperty());
 		assertTrue("not same bean", bean1 == bean2);
@@ -280,15 +241,15 @@ public class WhenceTest
 	@Test
 	public void testExtends() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing1", new Hash()
-				.addEntry("prop1", "a")
-				.addEntry("prop2", "b"))
-			.addEntry("thing2", new Hash()
-				.addEntry("_extends", "thing1")
-				.addEntry("prop2", "bee")
-				.addEntry("prop3", "c")));
-		Map<String,String> bean = w.configure("thing2", Map.class);
+		Map<String,String> bean = configure("thing2", Map.class,
+			new Hash()
+				.addEntry("thing1", new Hash()
+					.addEntry("prop1", "a")
+					.addEntry("prop2", "b"))
+				.addEntry("thing2", new Hash()
+					.addEntry("_extends", "thing1")
+					.addEntry("prop2", "bee")
+					.addEntry("prop3", "c")));
 		assertEquals("a", bean.get("prop1"));
 		assertEquals("bee", bean.get("prop2"));
 		assertEquals("c", bean.get("prop3"));
@@ -297,13 +258,27 @@ public class WhenceTest
 	@Test
 	public void testRecursiveExtends() throws Exception
 	{
-		Whence w = new Whence(new Hash()
-			.addEntry("thing1", new Hash()
-				.addEntry("hash", new Hash("x", 1).addEntry("y", 2)))
-			.addEntry("thing2", new Hash()
-				.addEntry("_extends", "thing1")
-				.addEntry("hash", new Hash("x", 0))));
-		Map<String,Object> bean = w.configure("thing2", Map.class);
+		Map<String,Object> bean = configure("thing2", Map.class,
+			new Hash()
+				.addEntry("thing1", new Hash()
+					.addEntry("hash", new Hash("x", 1).addEntry("y", 2)))
+				.addEntry("thing2", new Hash()
+					.addEntry("_extends", "thing1")
+					.addEntry("hash", new Hash("x", 0))));
 		assertEquals(new Integer(0), ((Map<String,Object>)bean.get("hash")).get("x"));
+	}
+
+	private <T> T configure(String key, Class<T> clazz, Hash hash) throws Exception
+	{
+		Document doc = new Document(hash);
+		Whence w = new Whence(doc.find(key), new ChildDocumentLoader(doc, ""));
+		return w.configure(clazz);
+	}
+
+	private Object configure(String key, Hash hash) throws Exception
+	{
+		Document doc = new Document(hash);
+		Whence w = new Whence(doc.find(key), new ChildDocumentLoader(doc, ""));
+		return w.configure();
 	}
 }

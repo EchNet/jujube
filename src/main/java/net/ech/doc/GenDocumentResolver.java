@@ -8,7 +8,7 @@ import java.io.IOException;
 public class GenDocumentResolver
 	implements DocumentResolver
 {
-	private Class appClass;
+	private Class appClass = GenDocumentResolver.class;
 
 	public Class getAppClass()
 	{

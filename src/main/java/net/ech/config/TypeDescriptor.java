@@ -1,7 +1,6 @@
 package net.ech.config;
 
 import java.lang.reflect.*;
-import net.ech.util.DPredicate;
 
 /**
  * Support for the Subtypeable pattern.  

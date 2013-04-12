@@ -10,31 +10,33 @@ import java.util.ArrayList;
 import java.util.List;
 import net.ech.doc.Document;
 import net.ech.doc.DocumentException;
-import net.ech.doc.DocumentLoader;
+import net.ech.doc.DocumentResolver;
 import net.ech.doc.DocPath;
 import net.ech.util.BeanPropertyMap;
 
-public class Whence
+public class DocumentBasedConfigurator
+	implements Configurator
 {
 	private static Map<Class<?>,List<SubtypeDescriptor>> subtypeDescriptorMap = new HashMap<Class<?>,List<SubtypeDescriptor>>();
 
 	private Document document;
-	private DocumentLoader documentLoader;
+	private DocumentResolver documentResolver;
 	private Map<DocPath,Object> cache;
 
-	public Whence(Document document, DocumentLoader documentLoader)
+	public DocumentBasedConfigurator(String key, DocumentResolver documentResolver)
+		throws IOException
+	{
+		this(documentResolver.resolve(key).produce(), documentResolver);
+	}
+
+	public DocumentBasedConfigurator(Document document, DocumentResolver documentResolver)
 	{
 		this.document = document;
-		this.documentLoader = documentLoader;
+		this.documentResolver = documentResolver;
 		this.cache = new HashMap<DocPath,Object>();
 	}
 
-	public Object configure()
-		throws IOException
-	{
-		return configure(Object.class);
-	}
-
+	@Override
 	public <T> T configure(Class<T> requiredClass)
 		throws IOException
 	{
@@ -69,7 +71,7 @@ public class Whence
 	{
 		String superDocKey = dq.find("_extends").get(String.class);
 		if (superDocKey != null) {
-			Document superDoc = documentLoader.load(superDocKey);
+			Document superDoc = documentResolver.resolve(superDocKey).produce();
 			if (superDoc.isNull()) {
 				throw new DocumentException(superDocKey + ": (_extends) no such key");
 			}

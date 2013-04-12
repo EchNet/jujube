@@ -2,7 +2,7 @@ package net.ech.config;
 
 import java.io.*;
 import java.util.*;
-import net.ech.doc.ChildDocumentLoader;
+import net.ech.doc.ChildDocumentResolver;
 import net.ech.doc.Document;
 import net.ech.util.*;
 import org.junit.*;
@@ -12,7 +12,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class WhenceTest
+public class DocumentBasedConfiguratorTest
 {
 	@Test
 	public void testNotFoundCase() throws Exception
@@ -230,7 +230,7 @@ public class WhenceTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla"));
 		Document doc = new Document(hash);
-		Whence w = new Whence(doc.find("thing"), new ChildDocumentLoader(doc, ""));
+		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find("thing"), new ChildDocumentResolver(doc, ""));
 		Bean bean1 = w.configure(Bean.class);
 		Bean bean2 = w.configure(Bean.class);
 		assertNotNull(bean1);
@@ -271,14 +271,14 @@ public class WhenceTest
 	private <T> T configure(String key, Class<T> clazz, Hash hash) throws Exception
 	{
 		Document doc = new Document(hash);
-		Whence w = new Whence(doc.find(key), new ChildDocumentLoader(doc, ""));
+		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find(key), new ChildDocumentResolver(doc, ""));
 		return w.configure(clazz);
 	}
 
 	private Object configure(String key, Hash hash) throws Exception
 	{
 		Document doc = new Document(hash);
-		Whence w = new Whence(doc.find(key), new ChildDocumentLoader(doc, ""));
-		return w.configure();
+		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find(key), new ChildDocumentResolver(doc, ""));
+		return w.configure(Object.class);
 	}
 }

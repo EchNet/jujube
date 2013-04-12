@@ -11,6 +11,7 @@ import java.util.Set;
 import java.lang.reflect.Array;
 
 public class Document
+	implements DocumentProducer
 {
     private Object stuff;
 	private String source;
@@ -33,6 +34,12 @@ public class Document
 		this.path = path;
     }
 
+	@Override
+	public Document produce()
+	{
+		return this;
+	}
+
     public Object get()
     {
         return stuff;
@@ -42,6 +49,11 @@ public class Document
     {
         return path == null ? new DocPath() : path;
     }
+
+	public String getName()
+	{
+		return path != null && (path.getLast() instanceof String) ? (String) path.getLast() : null;
+	}
 
     public boolean isNull()
     {

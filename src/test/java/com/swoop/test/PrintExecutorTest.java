@@ -1,28 +1,28 @@
 package com.swoop.test;
 
-import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
-import net.ech.config.Whence;
+import net.ech.config.DocumentBasedConfigurator;
 import net.ech.doc.Document;
-import net.ech.doc.DocumentLoader;
-import net.ech.doc.ChildDocumentLoader;
-import net.ech.doc.JsonResourceDocumentLoader;
+import net.ech.doc.DocumentResolver;
+import net.ech.doc.ChildDocumentResolver;
+import net.ech.doc.GenDocumentResolver;
 import org.junit.*;
 import static org.junit.Assert.*;
 
 public class PrintExecutorTest
 {
-	DocumentLoader docLoader;
+	DocumentResolver docResolver;
 
 	@Before
 	public void setUp() throws Exception
 	{
 		// Create a document source that loads from a single JSON document.
-		Document doc = new JsonResourceDocumentLoader(PrintExecutorTest.class.getClassLoader()).load("hello");
-		docLoader = new ChildDocumentLoader(doc, "");
+		GenDocumentResolver genResolver = new GenDocumentResolver();
+		genResolver.setAppClass(PrintExecutorTest.class);
+		Document doc = genResolver.resolve("resource:hello").produce();
+		docResolver = new ChildDocumentResolver(doc);
 	}
 
 	@Test
@@ -32,7 +32,7 @@ public class PrintExecutorTest
 			configure("thing");
 		}
 		catch (IOException e) {
-			assertEquals("resource(hello.json).thing: child document not found", e.getMessage());
+			assertEquals("resource:hello: .thing: child document not found", e.getMessage());
 		}
 	}
 
@@ -98,6 +98,6 @@ public class PrintExecutorTest
 	private PrintExecutor configure(String name)
 		throws Exception
 	{
-		return new Whence(docLoader.load(name), docLoader).configure(PrintExecutor.class);
+		return new DocumentBasedConfigurator(name, docResolver).configure(PrintExecutor.class);
 	}
 }

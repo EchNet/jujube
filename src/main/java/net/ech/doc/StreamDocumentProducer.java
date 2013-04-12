@@ -7,12 +7,10 @@ import java.io.IOException;
 abstract public class StreamDocumentProducer
 	implements DocumentProducer
 {
-	private JsonDeserializer json;
 	private String source;
 
-	public StreamDocumentProducer(JsonDeserializer json, String source)
+	public StreamDocumentProducer(String source)
 	{
-		this.json = json;
 		this.source = source;
 	}
 
@@ -27,7 +25,7 @@ abstract public class StreamDocumentProducer
 	{
 		Reader reader = openReader();
 		try {
-			return new Document(json.read(reader), source);
+			return new Document(SingletonJsonDeserializer.getInstance().read(reader), source);
 		}
 		finally {
 			reader.close();

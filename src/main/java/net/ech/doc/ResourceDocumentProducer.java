@@ -12,9 +12,14 @@ public class ResourceDocumentProducer
 	private ClassLoader classLoader;
 	private String resourcePath;
 
-	public ResourceDocumentProducer(JsonDeserializer json, String source, ClassLoader classLoader, String resourcePath)
+	public ResourceDocumentProducer(ClassLoader classLoader, String resourcePath)
 	{
-		super(json, source);
+		this("resource:" + resourcePath, classLoader, resourcePath);
+	}
+
+	public ResourceDocumentProducer(String source, ClassLoader classLoader, String resourcePath)
+	{
+		super(source);
 		this.classLoader = classLoader;
 		this.resourcePath = resourcePath;
 	}

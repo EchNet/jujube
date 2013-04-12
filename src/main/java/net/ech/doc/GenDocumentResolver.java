@@ -10,9 +10,6 @@ public class GenDocumentResolver
 {
 	private Class appClass;
 
-	// There is no way to configure this class yet, so just instantiate it one time here.
-	private JsonDeserializer json = new JsonDeserializer();
-
 	public Class getAppClass()
 	{
 		return appClass;
@@ -28,16 +25,16 @@ public class GenDocumentResolver
 		throws IOException
 	{
 		if (key.startsWith("file:")) {
-			return new FileDocumentProducer(json, key, addJsonExt(stripPrefix(key)));
+			return new FileDocumentProducer(key, addJsonExt(stripPrefix(key)));
 		}
 		else if (key.startsWith("resource:")) {
-			return new ResourceDocumentProducer(json, key, appClass.getClassLoader(), addJsonExt(stripPrefix(key)));
+			return new ResourceDocumentProducer(key, appClass.getClassLoader(), addJsonExt(stripPrefix(key)));
 		}
 		else if (key.startsWith("http:")) {
-			return new UrlDocumentProducer(json, key);
+			return new UrlDocumentProducer(key);
 		}
 		else {
-			return new FileDocumentProducer(json, key, addJsonExt(key));
+			return new FileDocumentProducer(key, addJsonExt(key));
 		}
 	}
 

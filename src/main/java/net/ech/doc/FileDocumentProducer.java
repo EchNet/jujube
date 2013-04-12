@@ -11,9 +11,14 @@ public class FileDocumentProducer
 {
 	private String fileName;
 
-	public FileDocumentProducer(JsonDeserializer json, String source, String fileName)
+	public FileDocumentProducer(String fileName)
 	{
-		super(json, source);
+		this("file:" + fileName, fileName);
+	}
+
+	public FileDocumentProducer(String source, String fileName)
+	{
+		super(source);
 		this.fileName = fileName;
 	}
 

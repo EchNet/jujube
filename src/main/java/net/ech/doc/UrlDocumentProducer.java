@@ -18,9 +18,9 @@ public class UrlDocumentProducer
 {
 	public final static String JSON_CONTENT_TYPE = "";
 
-	public UrlDocumentProducer(JsonDeserializer json, String source)
+	public UrlDocumentProducer(String source)
 	{
-		super(json, source);
+		super(source);
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -80,15 +81,27 @@ public class DocumentBasedConfigurator
 		private Document fillDocument(Document dq)
 			throws IOException
 		{
-			String superDocKey = dq.find("__extends").get(String.class);
-			if (superDocKey != null) {
-				Document superDoc = documentResolver.resolve(superDocKey).produce();
-				if (superDoc.isNull()) {
-					throw new DocumentException(superDocKey + ": (__extends) no such key");
-				}
-				dq = dq.extend(fillDocument(superDoc));
+			Document extendsDoc = dq.find("__extends");
+			if (!extendsDoc.isNull()) {
+				String superName = extendsDoc.get(String.class);
+				return extendDocument(superName != null ? Collections.singletonList(superName) : extendsDoc.require(List.class), dq);
 			}
 			return dq;
+		}
+
+		private Document extendDocument(List<String> superList, Document dq)
+			throws IOException
+		{
+			Document baseDoc = null;
+			for (String key : superList) {
+				Document superDoc = documentResolver.resolve(key).produce();
+				if (superDoc.isNull()) {
+					throw new DocumentException(key + ": (__extends) no such key");
+				}
+				superDoc = fillDocument(superDoc);
+				baseDoc = baseDoc == null ? superDoc : baseDoc.extend(superDoc);
+			}
+			return baseDoc == null ? dq : dq.extend(baseDoc);
 		}
 
 		private Object materializeMap(Document dq, Class<?> requiredClass)

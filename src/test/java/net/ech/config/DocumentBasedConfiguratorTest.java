@@ -269,6 +269,20 @@ public class DocumentBasedConfiguratorTest
 	}
 
 	@Test
+	public void testMultiExtends() throws Exception
+	{
+		Map<String,Object> bean = configure("thing", Map.class,
+			new Hash()
+				.addEntry("thing1", new Hash()
+					.addEntry("h1", new Hash("x", 1).addEntry("y", 2)))
+				.addEntry("thing2", new Hash()
+					.addEntry("h2", new Hash("x", 1).addEntry("y", 2)))
+				.addEntry("thing", new Hash("__extends", new String[] { "thing1", "thing2" })));
+		assertTrue(bean.containsKey("h1"));
+		assertTrue(bean.containsKey("h2"));
+	}
+
+	@Test
 	public void testContextReference() throws Exception
 	{
 		Map<String,Object> bean = configure("thing", Map.class,

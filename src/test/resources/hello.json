@@ -2,7 +2,7 @@
 {
 	// hello1 is a top-level configuration document.
 	"hello1": {
-		"_type": "com.swoop.test.PrintExecutor",  // it configures a special purpose executor.
+		"__type": "com.swoop.test.PrintExecutor",  // it configures a special purpose executor.
 		// Sequences express order of operation:
 		"sequences": {
 			"default": [
@@ -19,22 +19,22 @@
 		// Workers express operations:
 		"workers": {
 			"hello": {
-				"_type": "com.swoop.test.PrintStringWorker",
+				"__type": "com.swoop.test.PrintStringWorker",
 				"string": "Hello"
 			},
 			"world": {
-				"_type": "com.swoop.test.PrintStringWorker",
+				"__type": "com.swoop.test.PrintStringWorker",
 				"string": "World!"
 			},
 			"eol": {
-				"_type": "com.swoop.test.PrintlnWorker"
+				"__type": "com.swoop.test.PrintlnWorker"
 			}
 		}
 	},
 
 	// hello2 is a top-level configuration document.
 	"hello2": {
-		"_extends": "hello1", // it extends hello1.
+		"__extends": "hello1", // it extends hello1.
 		"sequences": {
 			"default": [  // it overrides the "default" sequence.
 				"hello",
@@ -48,7 +48,7 @@
 		},
 		"workers": {  // it adds a worker.
 			"hello_world": {
-				"_type": "com.swoop.test.PrintStringWorker",
+				"__type": "com.swoop.test.PrintStringWorker",
 				"string": "Helloooooo... World!\n"
 			}
 		}

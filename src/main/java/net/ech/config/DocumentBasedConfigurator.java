@@ -69,11 +69,11 @@ public class DocumentBasedConfigurator
 	private Document fillDocument(Document dq)
 		throws IOException
 	{
-		String superDocKey = dq.find("_extends").get(String.class);
+		String superDocKey = dq.find("__extends").get(String.class);
 		if (superDocKey != null) {
 			Document superDoc = documentResolver.resolve(superDocKey).produce();
 			if (superDoc.isNull()) {
-				throw new DocumentException(superDocKey + ": (_extends) no such key");
+				throw new DocumentException(superDocKey + ": (__extends) no such key");
 			}
 			dq = dq.extend(fillDocument(superDoc));
 		}
@@ -119,7 +119,7 @@ public class DocumentBasedConfigurator
 	private Class<?> findImplementationClass(Document dq, Class<?> requiredClass)
 		throws Exception
 	{
-		Class<?> implClass = dq.find("_type").isNull() ? requiredClass : Class.forName(dq.find("_type").require(String.class));
+		Class<?> implClass = dq.find("__type").isNull() ? requiredClass : Class.forName(dq.find("__type").require(String.class));
 
 		// Catch type mismatches.
 		if (!requiredClass.equals(implClass)) {

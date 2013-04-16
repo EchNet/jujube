@@ -42,7 +42,7 @@ public class DocumentBasedConfiguratorTest
 		Object bean = configure("thing", Object.class,
 			new Hash()
 				.addEntry("thing", new Hash()
-					.addEntry("_type", "net.ech.config.SimpleConfigurable")
+					.addEntry("__type", "net.ech.config.SimpleConfigurable")
 					.addEntry("property", "manilla")));
 
 		assertNotNull(bean);
@@ -247,7 +247,7 @@ public class DocumentBasedConfiguratorTest
 					.addEntry("prop1", "a")
 					.addEntry("prop2", "b"))
 				.addEntry("thing2", new Hash()
-					.addEntry("_extends", "thing1")
+					.addEntry("__extends", "thing1")
 					.addEntry("prop2", "bee")
 					.addEntry("prop3", "c")));
 		assertEquals("a", bean.get("prop1"));
@@ -263,7 +263,7 @@ public class DocumentBasedConfiguratorTest
 				.addEntry("thing1", new Hash()
 					.addEntry("hash", new Hash("x", 1).addEntry("y", 2)))
 				.addEntry("thing2", new Hash()
-					.addEntry("_extends", "thing1")
+					.addEntry("__extends", "thing1")
 					.addEntry("hash", new Hash("x", 0))));
 		assertEquals(new Integer(0), ((Map<String,Object>)bean.get("hash")).get("x"));
 	}

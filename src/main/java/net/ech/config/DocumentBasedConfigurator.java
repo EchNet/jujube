@@ -40,153 +40,212 @@ public class DocumentBasedConfigurator
 	public <T> T configure(Class<T> requiredClass)
 		throws IOException
 	{
-		return requiredClass.cast(snapReference(document, requiredClass));
+		return new Builder().build(requiredClass);
 	}
-
-	private Object snapReference(Document dq, Class<?> requiredClass)
-		throws IOException
+		
+	private class Builder
 	{
-		try {
-			dq = fillDocument(dq);
+		private Map<String,Object> context = new HashMap<String,Object>();
+		private List<Map<String,Object>> contextHistory = new ArrayList<Map<String,Object>>();
 
-			if (dq.get(Map.class) == null && dq.get(List.class) == null) {
-				return dq.get();
-			}
-
-			if (!cache.containsKey(dq.getPath())) {
-				cache.put(
-					dq.getPath(),
-					dq.get(Map.class) != null ? materializeMap(dq, requiredClass) : materializeList(dq, requiredClass)
-				);
-			}
-			return cache.get(dq.getPath());
-		}
-		catch (Exception e) {
-			throw new IOException("cannot configure " + dq.getPath() + ": " + e.getMessage(), e);
-		}
-	}
-
-	private Document fillDocument(Document dq)
-		throws IOException
-	{
-		String superDocKey = dq.find("__extends").get(String.class);
-		if (superDocKey != null) {
-			Document superDoc = documentResolver.resolve(superDocKey).produce();
-			if (superDoc.isNull()) {
-				throw new DocumentException(superDocKey + ": (__extends) no such key");
-			}
-			dq = dq.extend(fillDocument(superDoc));
-		}
-		return dq;
-	}
-
-	private Object materializeMap(Document dq, Class<?> requiredClass)
-		throws Exception
-	{
-		Class<?> implClass = findImplementationClass(dq, requiredClass);
-
-		if (implClass == null) {
-			Map<String,Object> map = new HashMap<String,Object>();
-			mapProperties(dq, null, map);
-			return map;
+		public <T> T build(Class<T> requiredClass)
+			throws IOException
+		{
+			return requiredClass.cast(snapReference(document, requiredClass));
 		}
 
-		ConfigurationDescriptor configDesc = ConfigurationDescriptor.analyze(implClass);
-		Object obj = (configDesc == null ? implClass : configDesc.getConfiguratorClass()).newInstance();
-		BeanPropertyMap bpm = new BeanPropertyMap(obj);
-		mapProperties(dq, bpm, bpm);
-		return configDesc == null ? obj : configDesc.getConstructor().newInstance(obj);
-	}
+		private Object snapReference(Document dq, Class<?> requiredClass)
+			throws IOException
+		{
+			try {
+				dq = fillDocument(dq);
 
-	private Object materializeList(Document dq, Class<?> requiredClass)
-		throws IOException
-	{
-		if (Object.class.equals(requiredClass) || List.class.equals(requiredClass)) {
-			List<Object> result = new ArrayList<Object>();
-			listProperties(dq, result);
-			return result;
-		}
-
-		if (requiredClass.isArray()) {
-			Object result =  Array.newInstance(requiredClass.getComponentType(), ((List) dq.get()).size());
-			arrayProperties(dq, requiredClass.getComponentType(), result);
-			return result;
-		}
-
-		throw new IllegalArgumentException(requiredClass + " cannot be configured with an array");
-	}
-
-	private Class<?> findImplementationClass(Document dq, Class<?> requiredClass)
-		throws Exception
-	{
-		Class<?> implClass = dq.find("__type").isNull() ? requiredClass : Class.forName(dq.find("__type").require(String.class));
-
-		// Catch type mismatches.
-		if (!requiredClass.equals(implClass)) {
-			implClass.asSubclass(requiredClass);  // throws ClassCastException
-		}
-
-		if (Map.class.equals(implClass) || Object.class.equals(implClass)) {
-			// If Object or Map is requested explicitly, return null to indicate that a Map should be instantiated.
-			implClass = null;
-		}
-		else if (implClass.isInterface()) {
-			// Handle request for interface by looking up a matching subtype configuration descriptor.
-			implClass = findMatchingSubtype(dq, implClass);
-		}
-
-		return implClass;
-	}
-
-	private Class<?> findMatchingSubtype(Document dq, Class<?> baseClass)
-		throws DocumentException
-	{
-		Class<?> implClass = null;
-
-		for (SubtypeDescriptor subtypeDescriptor : getSubtypeDescriptors(baseClass)) {
-			if (subtypeDescriptor.getConfigPredicate().evaluate(dq)) {
-				if (implClass != null) {
-					throw new DocumentException("ambiguous subtype");
+				if (dq.get(Map.class) == null && dq.get(List.class) == null) {
+					return dq.get();
 				}
-				implClass = subtypeDescriptor.getSubtype();
+
+				if (!cache.containsKey(dq.getPath())) {
+					cache.put(
+						dq.getPath(),
+						dq.get(Map.class) != null ? materializeMap(dq, requiredClass) : materializeList(dq, requiredClass)
+					);
+				}
+				return cache.get(dq.getPath());
+			}
+			catch (Exception e) {
+				throw new IOException("cannot configure " + dq.getPath() + ": " + e.getMessage(), e);
 			}
 		}
 
-		if (implClass == null) {
-			throw new DocumentException("does not appear to configure a subtype of " + baseClass);
+		private Document fillDocument(Document dq)
+			throws IOException
+		{
+			String superDocKey = dq.find("__extends").get(String.class);
+			if (superDocKey != null) {
+				Document superDoc = documentResolver.resolve(superDocKey).produce();
+				if (superDoc.isNull()) {
+					throw new DocumentException(superDocKey + ": (__extends) no such key");
+				}
+				dq = dq.extend(fillDocument(superDoc));
+			}
+			return dq;
 		}
-		return implClass;
-	}
 
-	private void mapProperties(Document dq, BeanPropertyMap bpm, Map<String,Object> map)
-		throws IOException
-	{
-		for (Document cdq : dq.children()) {
-			String key = cdq.getPath().getLast().toString();
-			if (!key.startsWith("_")) {
-				map.put(key, snapReference(cdq, bpm == null ? Object.class : bpm.getPropertyClass(key)));
+		private Object materializeMap(Document dq, Class<?> requiredClass)
+			throws Exception
+		{
+			Object refObject = handleRef(dq);
+			if (refObject != null) {
+				return refObject;
+			}
+
+			Class<?> implClass = findImplementationClass(dq, requiredClass);
+			boolean pushedContext = updateContext(dq);
+
+			try {
+				if (implClass == null) {
+					Map<String,Object> map = new HashMap<String,Object>();
+					mapProperties(dq, null, map);
+					return map;
+				}
+
+				ConfigurationDescriptor configDesc = ConfigurationDescriptor.analyze(implClass);
+				Object obj = (configDesc == null ? implClass : configDesc.getConfiguratorClass()).newInstance();
+				BeanPropertyMap bpm = new BeanPropertyMap(obj);
+				mapProperties(dq, bpm, bpm);
+				return configDesc == null ? obj : configDesc.getConstructor().newInstance(obj);
+			}
+			finally {
+				if (pushedContext) {
+					popContext();
+				}
 			}
 		}
-	}
 
-	private void arrayProperties(Document dq, Class<?> implElementClass, Object result)
-		throws IOException
-	{
-		int index = 0;
-		for (Document cdq : dq.children()) {
-			Array.set(result, index++, snapReference(cdq, implElementClass));
+		private Object materializeList(Document dq, Class<?> requiredClass)
+			throws IOException
+		{
+			if (Object.class.equals(requiredClass) || List.class.equals(requiredClass)) {
+				List<Object> result = new ArrayList<Object>();
+				listProperties(dq, result);
+				return result;
+			}
+
+			if (requiredClass.isArray()) {
+				Object result =  Array.newInstance(requiredClass.getComponentType(), ((List) dq.get()).size());
+				arrayProperties(dq, requiredClass.getComponentType(), result);
+				return result;
+			}
+
+			throw new IllegalArgumentException(requiredClass + " cannot be configured with an array");
+		}
+
+		private Class<?> findImplementationClass(Document dq, Class<?> requiredClass)
+			throws Exception
+		{
+			Class<?> implClass = dq.find("__type").isNull() ? requiredClass : Class.forName(dq.find("__type").require(String.class));
+
+			// Catch type mismatches.
+			if (!requiredClass.equals(implClass)) {
+				implClass.asSubclass(requiredClass);  // throws ClassCastException
+			}
+
+			if (Map.class.equals(implClass) || Object.class.equals(implClass)) {
+				// If Object or Map is requested explicitly, return null to indicate that a Map should be instantiated.
+				implClass = null;
+			}
+			else if (implClass.isInterface()) {
+				// Handle request for interface by looking up a matching subtype configuration descriptor.
+				implClass = findMatchingSubtype(dq, implClass);
+			}
+
+			return implClass;
+		}
+
+		private Class<?> findMatchingSubtype(Document dq, Class<?> baseClass)
+			throws DocumentException
+		{
+			Class<?> implClass = null;
+
+			for (SubtypeDescriptor subtypeDescriptor : getSubtypeDescriptors(baseClass)) {
+				if (subtypeDescriptor.getConfigPredicate().evaluate(dq)) {
+					if (implClass != null) {
+						throw new DocumentException("ambiguous subtype");
+					}
+					implClass = subtypeDescriptor.getSubtype();
+				}
+			}
+
+			if (implClass == null) {
+				throw new DocumentException("does not appear to configure a subtype of " + baseClass);
+			}
+			return implClass;
+		}
+
+		private void mapProperties(Document dq, BeanPropertyMap bpm, Map<String,Object> map)
+			throws IOException
+		{
+			for (Document cdq : dq.children()) {
+				String key = cdq.getPath().getLast().toString();
+				if (!key.startsWith("_")) {
+					map.put(key, snapReference(cdq, bpm == null ? Object.class : bpm.getPropertyClass(key)));
+				}
+			}
+		}
+
+		private void arrayProperties(Document dq, Class<?> implElementClass, Object result)
+			throws IOException
+		{
+			int index = 0;
+			for (Document cdq : dq.children()) {
+				Array.set(result, index++, snapReference(cdq, implElementClass));
+			}
+		}
+
+		private void listProperties(Document dq, List<Object> result)
+			throws IOException
+		{
+			for (Document cdq : dq.children()) {
+				result.add(snapReference(cdq, Object.class));
+			}
+		}
+
+		private Object handleRef(Document dq)
+			throws IOException
+		{
+			String ref = dq.find("__ref").cast(String.class, null);
+			if (ref != null) {
+				if (!context.containsKey(ref)) {
+					throw new IOException(ref + ": unresolved reference");
+				}
+				return context.get(ref);
+			}
+			return null;
+		}
+
+		private boolean updateContext(Document dq)
+			throws IOException
+		{
+			Document contextDoc = dq.find("__context");
+			if (contextDoc.cast(Map.class, null) != null) {
+				Map<String,Object> newContext = new HashMap<String,Object>();
+				mapProperties(contextDoc, null, newContext);
+				contextHistory.add(context);
+				context = newContext;
+				return true;
+			}
+			return false;
+		}
+
+		private void popContext()
+		{
+			int size = contextHistory.size();
+			context = contextHistory.get(size - 1);
+			contextHistory.remove(size - 1);
 		}
 	}
 
-	private void listProperties(Document dq, List<Object> result)
-		throws IOException
-	{
-		for (Document cdq : dq.children()) {
-			result.add(snapReference(cdq, Object.class));
-		}
-	}
-
-	private List<SubtypeDescriptor> getSubtypeDescriptors(Class<?> iClass)
+	private static List<SubtypeDescriptor> getSubtypeDescriptors(Class<?> iClass)
 	{
 		synchronized (subtypeDescriptorMap) {
 			if (!subtypeDescriptorMap.containsKey(iClass)) {

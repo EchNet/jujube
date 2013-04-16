@@ -268,6 +268,18 @@ public class DocumentBasedConfiguratorTest
 		assertEquals(new Integer(0), ((Map<String,Object>)bean.get("hash")).get("x"));
 	}
 
+	@Test
+	public void testContextReference() throws Exception
+	{
+		Map<String,Object> bean = configure("thing", Map.class,
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("__context", new Hash("x", 1))
+					.addEntry("y", new Hash("__ref", "x"))));
+		assertTrue(bean.containsKey("y"));
+		assertEquals(new Integer(1), bean.get("y"));
+	}
+
 	private <T> T configure(String key, Class<T> clazz, Hash hash) throws Exception
 	{
 		Document doc = new Document(hash);

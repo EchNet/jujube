@@ -218,7 +218,7 @@ public class DocumentBasedConfiguratorTest
 			fail("should not be reached");
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing: java.util.List is an interface having no subtype descriptors", e.getMessage());
+			assertEquals("cannot configure thing: does not appear to configure a subtype of interface java.util.List", e.getMessage());
 			assertNotNull(e.getCause());
 		}
 	}

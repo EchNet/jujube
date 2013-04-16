@@ -150,7 +150,7 @@ public class DocumentBasedConfigurator
 				return result;
 			}
 
-			throw new IllegalArgumentException(requiredClass + " cannot be configured with an array");
+			throw new DocumentException(requiredClass + " cannot be configured with an array");
 		}
 
 		private Class<?> findImplementationClass(Document dq, Class<?> requiredClass)
@@ -180,12 +180,15 @@ public class DocumentBasedConfigurator
 		{
 			Class<?> implClass = null;
 
-			for (SubtypeDescriptor subtypeDescriptor : getSubtypeDescriptors(baseClass)) {
-				if (subtypeDescriptor.getConfigPredicate().evaluate(dq)) {
-					if (implClass != null) {
-						throw new DocumentException("ambiguous subtype");
+			List<SubtypeDescriptor> subtypeDescriptors = getSubtypeDescriptors(baseClass);
+			if (subtypeDescriptors != null) {
+				for (SubtypeDescriptor subtypeDescriptor : subtypeDescriptors) {
+					if (subtypeDescriptor.getConfigPredicate().evaluate(dq)) {
+						if (implClass != null) {
+							throw new DocumentException("ambiguous subtype");
+						}
+						implClass = subtypeDescriptor.getSubtype();
 					}
-					implClass = subtypeDescriptor.getSubtype();
 				}
 			}
 
@@ -265,7 +268,7 @@ public class DocumentBasedConfigurator
 
 				SubtypeDescriptor[] subtypeDescriptors = SubtypeDescriptor.discover(iClass);
 				if (subtypeDescriptors == null) {
-					throw new IllegalArgumentException(iClass.getName() + " is an interface having no subtype descriptors");
+					return null;
 				}
 
 				subtypeDescriptorMap.put(iClass, Arrays.asList(subtypeDescriptors));

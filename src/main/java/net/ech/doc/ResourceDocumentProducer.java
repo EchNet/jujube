@@ -1,8 +1,10 @@
 package net.ech.doc;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ResourceDocumentProducer
@@ -28,6 +30,10 @@ public class ResourceDocumentProducer
 	protected Reader openReader()
 		throws IOException
 	{
-		return new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream(resourcePath)));
+		InputStream in = classLoader.getResourceAsStream(resourcePath);
+		if (in == null) {    // why the above does not throw is a mystery to me.
+			throw new FileNotFoundException(resourcePath + ": resource not found");
+		}
+		return new BufferedReader(new InputStreamReader(in));
 	}
 }

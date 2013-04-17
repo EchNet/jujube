@@ -52,6 +52,7 @@ public class DocumentBasedConfigurator
 		public <T> T build(Class<T> requiredClass)
 			throws IOException
 		{
+			context.put("$document", document);
 			return requiredClass.cast(snapReference(document, requiredClass));
 		}
 
@@ -244,7 +245,7 @@ public class DocumentBasedConfigurator
 		{
 			Document contextDoc = dq.find("__context");
 			if (contextDoc.cast(Map.class, null) != null) {
-				Map<String,Object> newContext = new HashMap<String,Object>();
+				Map<String,Object> newContext = new HashMap<String,Object>(context);
 				mapProperties(contextDoc, null, newContext);
 				contextHistory.add(context);
 				context = newContext;

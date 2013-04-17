@@ -8,6 +8,10 @@ public class ChildDocumentResolver
 	private Document document;
 	private String keyPrefix;
 
+	public ChildDocumentResolver()
+	{
+	}
+
 	public ChildDocumentResolver(Document document)
 	{
 		this(document, "");
@@ -16,6 +20,26 @@ public class ChildDocumentResolver
 	public ChildDocumentResolver(Document document, String keyPrefix)
 	{
 		this.document = document;
+		this.keyPrefix = keyPrefix;
+	}
+
+	public Document getDocument()
+	{
+		return document;
+	}
+
+	public void setDocument(Document document)
+	{
+		this.document = document;
+	}
+
+	public String getKeyPrefix()
+	{
+		return keyPrefix;
+	}
+
+	public void setKeyPrefix(String keyPrefix)
+	{
 		this.keyPrefix = keyPrefix;
 	}
 

@@ -6,7 +6,7 @@ public class ChildDocumentResolver
 	implements DocumentResolver
 {
 	private Document document;
-	private String keyPrefix;
+	private String keyPrefix = "";
 
 	public ChildDocumentResolver()
 	{

@@ -1,7 +1,5 @@
 package net.ech.config;
 
-import java.io.IOException;
-
 /**
  * A Configurator is bound to some sort of configuration data and builds the object described
  * by the configuration.
@@ -15,5 +13,5 @@ public interface Configurator
 	 * @throws ClassCastException   If the object is not of the required type
 	 */
 	public <T> T configure(Class<T> requiredClass)
-		throws IOException;
+		throws ConfigException;
 }

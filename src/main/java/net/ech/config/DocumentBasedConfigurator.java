@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import net.ech.doc.Document;
-import net.ech.doc.DocumentException;
 import net.ech.doc.DocumentResolver;
 import net.ech.doc.DocPath;
 import net.ech.util.BeanPropertyMap;
@@ -39,7 +38,7 @@ public class DocumentBasedConfigurator
 
 	@Override
 	public <T> T configure(Class<T> requiredClass)
-		throws IOException
+		throws ConfigException
 	{
 		return new Builder().build(requiredClass);
 	}
@@ -50,14 +49,15 @@ public class DocumentBasedConfigurator
 		private List<Map<String,Object>> contextHistory = new ArrayList<Map<String,Object>>();
 
 		public <T> T build(Class<T> requiredClass)
-			throws IOException
+			throws ConfigException
 		{
 			context.put("$document", document);
+			context.put("$resolver", documentResolver);
 			return requiredClass.cast(snapReference(document, requiredClass));
 		}
 
 		private Object snapReference(Document dq, Class<?> requiredClass)
-			throws IOException
+			throws ConfigException
 		{
 			try {
 				dq = fillDocument(dq);
@@ -74,8 +74,11 @@ public class DocumentBasedConfigurator
 				}
 				return cache.get(dq.getPath());
 			}
-			catch (Exception e) {
-				throw new IOException("cannot configure " + dq.getPath() + ": " + e.getMessage(), e);
+			catch (ConfigException e) {
+				throw e;
+			}
+			catch (IOException e) {
+				throw new ConfigException("cannot configure " + dq.getPath() + ": " + e.getMessage(), e);
 			}
 		}
 
@@ -97,7 +100,7 @@ public class DocumentBasedConfigurator
 			for (String key : superList) {
 				Document superDoc = documentResolver.resolve(key).produce();
 				if (superDoc.isNull()) {
-					throw new DocumentException(key + ": (__extends) no such key");
+					throw new InternalConfigException(key + ": (__extends) no such key");
 				}
 				superDoc = fillDocument(superDoc);
 				baseDoc = baseDoc == null ? superDoc : baseDoc.extend(superDoc);
@@ -106,7 +109,7 @@ public class DocumentBasedConfigurator
 		}
 
 		private Object materializeMap(Document dq, Class<?> requiredClass)
-			throws Exception
+			throws IOException
 		{
 			Object refObject = handleRef(dq);
 			if (refObject != null) {
@@ -128,6 +131,15 @@ public class DocumentBasedConfigurator
 				BeanPropertyMap bpm = new BeanPropertyMap(obj);
 				mapProperties(dq, bpm, bpm);
 				return configDesc == null ? obj : configDesc.getConstructor().newInstance(obj);
+			}
+			catch (InstantiationException e) {
+				throw new InternalConfigException(e);
+			}
+			catch (IllegalAccessException e) {
+				throw new InternalConfigException(e);
+			}
+			catch (java.lang.reflect.InvocationTargetException e) {
+				throw new InternalConfigException(e);
 			}
 			finally {
 				if (pushedContext) {
@@ -151,13 +163,19 @@ public class DocumentBasedConfigurator
 				return result;
 			}
 
-			throw new DocumentException(requiredClass + " cannot be configured with an array");
+			throw new InternalConfigException(requiredClass + " cannot be configured with an array");
 		}
 
 		private Class<?> findImplementationClass(Document dq, Class<?> requiredClass)
-			throws Exception
+			throws IOException
 		{
-			Class<?> implClass = dq.find("__type").isNull() ? requiredClass : Class.forName(dq.find("__type").require(String.class));
+			Class<?> implClass;
+			try {
+				implClass = dq.find("__type").isNull() ? requiredClass : Class.forName(dq.find("__type").require(String.class));
+			}
+			catch (ClassNotFoundException e) {
+				throw new InternalConfigException(e);
+			}
 
 			// Catch type mismatches.
 			if (!requiredClass.equals(implClass)) {
@@ -177,7 +195,7 @@ public class DocumentBasedConfigurator
 		}
 
 		private Class<?> findMatchingSubtype(Document dq, Class<?> baseClass)
-			throws DocumentException
+			throws IOException
 		{
 			Class<?> implClass = null;
 
@@ -186,7 +204,7 @@ public class DocumentBasedConfigurator
 				for (SubtypeDescriptor subtypeDescriptor : subtypeDescriptors) {
 					if (subtypeDescriptor.getConfigPredicate().evaluate(dq)) {
 						if (implClass != null) {
-							throw new DocumentException("ambiguous subtype");
+							throw new InternalConfigException("ambiguous subtype");
 						}
 						implClass = subtypeDescriptor.getSubtype();
 					}
@@ -194,7 +212,7 @@ public class DocumentBasedConfigurator
 			}
 
 			if (implClass == null) {
-				throw new DocumentException("does not appear to configure a subtype of " + baseClass);
+				throw new InternalConfigException("does not appear to configure a subtype of " + baseClass);
 			}
 			return implClass;
 		}
@@ -275,6 +293,18 @@ public class DocumentBasedConfigurator
 				subtypeDescriptorMap.put(iClass, Arrays.asList(subtypeDescriptors));
 			}
 			return subtypeDescriptorMap.get(iClass);
+		}
+	}
+
+	private static class InternalConfigException
+		extends IOException
+	{
+		InternalConfigException(String msg) {
+			super(msg);
+		}
+
+		InternalConfigException(Exception e) {
+			super(e);
 		}
 	}
 }

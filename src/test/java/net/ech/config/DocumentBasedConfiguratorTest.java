@@ -26,7 +26,25 @@ public class DocumentBasedConfiguratorTest
 	}
 
 	@Test
-	public void testPositiveConfigurableClassCalledFor() throws Exception
+	public void testInstantiateBeanWithExplicitType() throws Exception
+	{
+		Object bean = configure("thing", Object.class, new Hash()
+			.addEntry("thing", new Hash()
+				.addEntry("__type", "net.ech.config.SimpleConfigurable")));
+		assertNotNull(bean);
+		assertTrue(bean instanceof SimpleConfigurable);
+	}
+
+	@Test
+	public void testInstantiateBeanWithTypeHint() throws Exception
+	{
+		SimpleConfigurable bean = configure("thing", SimpleConfigurable.class, new Hash("thing", new Hash()));
+		assertNotNull(bean);
+		assertNull(bean.getProperty());
+	}
+
+	@Test
+	public void testSetBeanProp() throws Exception
 	{
 		SimpleConfigurable bean = configure("thing", SimpleConfigurable.class,
 			new Hash()
@@ -37,13 +55,15 @@ public class DocumentBasedConfiguratorTest
 	}
 
 	@Test
-	public void testPositiveConfigurableClassIdentifiedInConfig() throws Exception
+	public void testSetBeanConstructorArg() throws Exception
 	{
 		Object bean = configure("thing", Object.class,
 			new Hash()
 				.addEntry("thing", new Hash()
 					.addEntry("__type", "net.ech.config.SimpleConfigurable")
-					.addEntry("property", "manilla")));
+					.addEntry("__args", new Hash()
+						.addEntry("__type", "net.ech.config.SimpleConfigurable")
+						.addEntry("property", "manilla"))));
 
 		assertNotNull(bean);
 		assertTrue(bean instanceof SimpleConfigurable);
@@ -230,7 +250,7 @@ public class DocumentBasedConfiguratorTest
 			.addEntry("thing", new Hash()
 				.addEntry("property", "manilla"));
 		Document doc = new Document(hash);
-		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find("thing"), new ChildDocumentResolver(doc, ""));
+		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find("thing"), new ChildDocumentResolver(doc));
 		Bean bean1 = w.configure(Bean.class);
 		Bean bean2 = w.configure(Bean.class);
 		assertNotNull(bean1);
@@ -297,14 +317,14 @@ public class DocumentBasedConfiguratorTest
 	private <T> T configure(String key, Class<T> clazz, Hash hash) throws Exception
 	{
 		Document doc = new Document(hash);
-		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find(key), new ChildDocumentResolver(doc, ""));
+		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find(key), new ChildDocumentResolver(doc));
 		return w.configure(clazz);
 	}
 
 	private Object configure(String key, Hash hash) throws Exception
 	{
 		Document doc = new Document(hash);
-		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find(key), new ChildDocumentResolver(doc, ""));
+		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find(key), new ChildDocumentResolver(doc));
 		return w.configure(Object.class);
 	}
 }

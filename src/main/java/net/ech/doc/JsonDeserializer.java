@@ -3,8 +3,9 @@ package net.ech.doc;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
+import com.fasterxml.jackson.core.JsonFactory;
+import static com.fasterxml.jackson.core.JsonParser.Feature.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A really simple JSON deserializer based on Jackson.
@@ -16,9 +17,10 @@ public class JsonDeserializer
 	public JsonDeserializer()
 	{
 		jsonFactory = new JsonFactory();
-		jsonFactory.setCodec(new ObjectMapper());
-		jsonFactory.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
-		jsonFactory.enable(JsonParser.Feature.ALLOW_COMMENTS);
+		jsonFactory.setCodec(new ObjectMapper() {
+		});
+		jsonFactory.enable(ALLOW_UNQUOTED_FIELD_NAMES);
+		jsonFactory.enable(ALLOW_COMMENTS);
 	}
 
 	public Object read(Reader input)

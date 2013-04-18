@@ -7,7 +7,7 @@ import net.ech.config.DocumentBasedConfigurator;
 import net.ech.doc.Document;
 import net.ech.doc.DocumentResolver;
 import net.ech.doc.ChildDocumentResolver;
-import net.ech.doc.GenDocumentResolver;
+import net.ech.doc.ExternalDocumentResolver;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -19,7 +19,7 @@ public class PrintExecutorTest
 	public void setUp() throws Exception
 	{
 		// Create a document source that loads from a single JSON document.
-		GenDocumentResolver genResolver = new GenDocumentResolver();
+		ExternalDocumentResolver genResolver = new ExternalDocumentResolver();
 		genResolver.setAppClass(PrintExecutorTest.class);
 		Document doc = genResolver.resolve("resource:hello").produce();
 		docResolver = new ChildDocumentResolver(doc);

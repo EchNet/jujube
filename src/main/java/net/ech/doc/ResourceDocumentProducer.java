@@ -14,6 +14,11 @@ public class ResourceDocumentProducer
 	private ClassLoader classLoader;
 	private String resourcePath;
 
+	public ResourceDocumentProducer(String resourcePath)
+	{
+		this(null, resourcePath);
+	}
+
 	public ResourceDocumentProducer(ClassLoader classLoader, String resourcePath)
 	{
 		this("resource:" + resourcePath, classLoader, resourcePath);
@@ -30,6 +35,7 @@ public class ResourceDocumentProducer
 	protected Reader openReader()
 		throws IOException
 	{
+		ClassLoader classLoader = this.classLoader == null ?  getClass().getClassLoader() : this.classLoader;
 		InputStream in = classLoader.getResourceAsStream(resourcePath);
 		if (in == null) {    // why the above does not throw is a mystery to me.
 			throw new FileNotFoundException(resourcePath + ": resource not found");

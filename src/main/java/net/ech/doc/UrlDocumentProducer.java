@@ -16,7 +16,7 @@ public class UrlDocumentProducer
 	extends StreamDocumentProducer
 	implements DocumentProducer
 {
-	public final static String JSON_CONTENT_TYPE = "";
+	public final static String JSON_CONTENT_TYPE = "application/json";
 
 	public UrlDocumentProducer(String source)
 	{

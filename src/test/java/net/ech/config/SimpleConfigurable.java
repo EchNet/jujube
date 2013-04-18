@@ -1,27 +1,14 @@
 package net.ech.config;
 
-// See ConfigurationDescriptorTest.java
-
 public class SimpleConfigurable
 {
 	private String property;
 
-	public static class Config
+	public SimpleConfigurable()
 	{
-		private String property;
-
-		public String getProperty()
-		{
-			return property;
-		}
-
-		public void setProperty(String property)
-		{
-			this.property = property;
-		}
 	}
 
-	public SimpleConfigurable(Config config)
+	public SimpleConfigurable(SimpleConfigurable config)
 	{
 		this.property = config.property;
 	}
@@ -29,5 +16,10 @@ public class SimpleConfigurable
 	public String getProperty()
 	{
 		return property;
+	}
+
+	public void setProperty(String property)
+	{
+		this.property = property;
 	}
 }

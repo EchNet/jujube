@@ -192,14 +192,23 @@ public class DocumentTest
 	@Test
 	public void testChildrenOfMap() throws Exception
 	{
-		Document parent = new Document(new Hash().addEntry("foo", "bar"));
-		List<Integer> counts = new ArrayList<Integer>();
-		counts.add(0);
-		for (Document child : parent.children()) {
-			counts.set(0, counts.get(0).intValue() + 1);
-		}
-		assertEquals(1, counts.get(0).intValue());
-	}
+		JsonDeserializer deserializer = new JsonDeserializer();
+		Document doc = new Document(deserializer.decode("" + 
+			"{" +
+			"  customization: []," +
+			"  config: []," +
+			"  \"\": []," +
+			"  preprocessing: []," +
+			"  runtime: []" +
+			"}"));
+		List<Document> children = doc.children();
+		assertEquals(5, children.size());
+		assertEquals("customization", children.get(0).getName());
+		assertEquals("config", children.get(1).getName());
+		assertEquals("", children.get(2).getName());
+		assertEquals("preprocessing", children.get(3).getName());
+		assertEquals("runtime", children.get(4).getName());
+    }
 
 	@Test
 	public void testChildrenValueOfList() throws Exception

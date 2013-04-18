@@ -102,7 +102,7 @@ public class JsonSerializer
 	}
 
 	/**
-	 * Enable trapping of string literals - see {@link net.ech.io.template.TemplateContentHandle}
+	 * Enable trapping of string literals.
 	 */
 	protected void writeStringLiteral(String value, Writer writer)
 		throws IOException

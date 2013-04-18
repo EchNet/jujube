@@ -5,52 +5,35 @@ import java.io.IOException;
 public class ChildDocumentResolver
 	implements DocumentResolver
 {
-	private Document document;
-	private String keyPrefix = "";
+	private DocumentProducer producer;
 
 	public ChildDocumentResolver()
 	{
 	}
 
-	public ChildDocumentResolver(Document document)
+	public ChildDocumentResolver(DocumentProducer producer)
 	{
-		this(document, "");
+		this.producer = producer;
 	}
 
-	public ChildDocumentResolver(Document document, String keyPrefix)
+	public DocumentProducer getProducer()
 	{
-		this.document = document;
-		this.keyPrefix = keyPrefix;
+		return producer;
 	}
 
-	public Document getDocument()
+	public void setProducer(DocumentProducer producer)
 	{
-		return document;
-	}
-
-	public void setDocument(Document document)
-	{
-		this.document = document;
-	}
-
-	public String getKeyPrefix()
-	{
-		return keyPrefix;
-	}
-
-	public void setKeyPrefix(String keyPrefix)
-	{
-		this.keyPrefix = keyPrefix;
+		this.producer = producer;
 	}
 
 	@Override
 	public DocumentProducer resolve(String key)
 		throws IOException
 	{
-		String fullKey = keyPrefix + key;
-		Document sub = document.find(fullKey);
+		Document document = producer.produce();
+		Document sub = document.find(key);
 		if (sub.isNull()) {
-			throw new IOException(document.getSource() + ": ." + fullKey + ": child document not found");
+			throw new IOException(document.getSource() + ": ." + key + ": child document not found");
 		}
 		return sub;
 	}

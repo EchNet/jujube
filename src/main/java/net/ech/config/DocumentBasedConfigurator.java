@@ -2,6 +2,7 @@ package net.ech.config;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,6 +38,13 @@ public class DocumentBasedConfigurator
 	}
 
 	@Override
+	public Object configure()
+		throws ConfigException
+	{
+		return new Builder().build();
+	}
+
+	@Override
 	public <T> T configure(Class<T> requiredClass)
 		throws ConfigException
 	{
@@ -48,11 +56,21 @@ public class DocumentBasedConfigurator
 		private Map<String,Object> context = new HashMap<String,Object>();
 		private List<Map<String,Object>> contextHistory = new ArrayList<Map<String,Object>>();
 
-		public <T> T build(Class<T> requiredClass)
-			throws ConfigException
+		Builder()
 		{
 			context.put("$document", document);
 			context.put("$resolver", documentResolver);
+		}
+
+		public Object build()
+			throws ConfigException
+		{
+			return snapReference(document, Object.class);
+		}
+
+		public <T> T build(Class<T> requiredClass)
+			throws ConfigException
+		{
 			return requiredClass.cast(snapReference(document, requiredClass));
 		}
 
@@ -60,19 +78,24 @@ public class DocumentBasedConfigurator
 			throws ConfigException
 		{
 			try {
-				dq = fillDocument(dq);
-
-				if (dq.get(Map.class) == null && dq.get(List.class) == null) {
-					return dq.get();
+				if (Document.class.equals(requiredClass)) {
+					return dq.copy();
 				}
+				else {
+					dq = fillDocument(dq);
 
-				if (!cache.containsKey(dq.getPath())) {
-					cache.put(
-						dq.getPath(),
-						dq.get(Map.class) != null ? materializeMap(dq, requiredClass) : materializeList(dq, requiredClass)
-					);
+					if (dq.get(Map.class) == null && dq.get(List.class) == null) {
+						return dq.get();
+					}
+
+					if (!cache.containsKey(dq.getPath())) {
+						cache.put(
+							dq.getPath(),
+							dq.get(Map.class) != null ? materializeMap(dq, requiredClass) : materializeList(dq, requiredClass)
+						);
+					}
+					return cache.get(dq.getPath());
 				}
-				return cache.get(dq.getPath());
 			}
 			catch (ConfigException e) {
 				throw e;
@@ -126,11 +149,32 @@ public class DocumentBasedConfigurator
 					return map;
 				}
 
-				ConfigurationDescriptor configDesc = ConfigurationDescriptor.analyze(implClass);
-				Object obj = (configDesc == null ? implClass : configDesc.getConfiguratorClass()).newInstance();
+				Document argsDoc = dq.find("__args");
+				int nParams = 0;
+				if (!argsDoc.isNull()) {
+					nParams = argsDoc.get(List.class) == null ? 1 : argsDoc.get(List.class).size();
+				}
+
+				Constructor<?> cons = pickConstructor(implClass, nParams);
+				if (cons == null) {
+					throw new InternalConfigException(implClass + ": no compatible constructor");
+				}
+				Object[] consParams = new Object[nParams];
+
+				if (argsDoc.get(List.class) != null) {
+					List<Document> childDocs = argsDoc.children();
+					for (int i = 0; i < nParams; ++i) {
+						consParams[i] = snapReference(childDocs.get(i), cons.getParameterTypes()[nParams]);
+					}
+				}
+				else if (!argsDoc.isNull()) {
+					consParams[0] = snapReference(argsDoc, cons.getParameterTypes()[0]);
+				}
+
+				Object obj = cons.newInstance(consParams);
 				BeanPropertyMap bpm = new BeanPropertyMap(obj);
 				mapProperties(dq, bpm, bpm);
-				return configDesc == null ? obj : configDesc.getConstructor().newInstance(obj);
+				return obj;
 			}
 			catch (InstantiationException e) {
 				throw new InternalConfigException(e);
@@ -146,6 +190,16 @@ public class DocumentBasedConfigurator
 					popContext();
 				}
 			}
+		}
+
+		private Constructor<?> pickConstructor(Class<?> targetClass, int nParams)
+		{
+			for (Constructor<?> cons : targetClass.getConstructors()) {
+				if (cons.getParameterTypes().length == nParams) {
+					return cons;
+				}
+			}
+			return null;
 		}
 
 		private Object materializeList(Document dq, Class<?> requiredClass)
@@ -222,7 +276,7 @@ public class DocumentBasedConfigurator
 		{
 			for (Document cdq : dq.children()) {
 				String key = cdq.getPath().getLast().toString();
-				if (!key.startsWith("_")) {
+				if (!key.startsWith("__")) {
 					map.put(key, snapReference(cdq, bpm == null ? Object.class : bpm.getPropertyClass(key)));
 				}
 			}

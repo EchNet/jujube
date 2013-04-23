@@ -104,41 +104,7 @@ public class Document
 
 	public Document copy()
 	{
-		return new Document(copyStuff(stuff), this.source, this.path);
-	}
-
-	private static Object copyStuff(Object stuff)
-	{
-		if (stuff == null || (stuff instanceof String) || (stuff instanceof Number) || (stuff instanceof Boolean)) {
-			return stuff;
-		}
-		if (stuff instanceof List) {
-			List<Object> list = (List<Object>) stuff;
-			List<Object> newList = new ArrayList<Object>();
-            for (int i = 0; i < list.size(); ++i) {
-				newList.add(copyStuff(list.get(i)));
-            }
-			return newList;
-		}
-		if (stuff.getClass().isArray()) {
-			int length = Array.getLength(stuff);
-			Object newArray = Array.newInstance(stuff.getClass().getComponentType(), length);
-			for (int i = 0; i < length; ++i) {
-				Array.set(newArray, i, Array.get(stuff, i));
-			}
-			return newArray;
-		}
-		if (stuff instanceof Map) {
-			Map<Object,Object> newMap = new HashMap<Object,Object>();
-            for (Map.Entry<Object,Object> entry : ((Map<Object,Object>) stuff).entrySet()) {
-				newMap.put(entry.getKey(), copyStuff(entry.getValue()));
-            }
-			return newMap;
-		}
-		if (stuff instanceof Date) {
-			return new Date(((Date) stuff).getTime());
-		}
-		throw new IllegalArgumentException(stuff + ": " + stuff.getClass() + " not copyable");
+		return new DocumentCopier(this).walk().getCopy();
 	}
 
 	public Document extend(Document operand)

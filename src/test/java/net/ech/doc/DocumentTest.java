@@ -378,27 +378,22 @@ public class DocumentTest
 	}
 
 	@Test
-	public void testCopyArrayMakesArray() throws Exception
-	{
-		String[] original = new String[] { "hi" };
-		Object copy = new Document(original).copy().get();
-		assertTrue(copy.getClass().isArray());
-	}
-
-	@Test
-	public void testCopyArrayMakesNewArray() throws Exception
-	{
-		String[] original = new String[] { "hi" };
-		Object copy = new Document(original).copy().get();
-		assertTrue(original != copy);
-	}
-
-	@Test
-	public void testCopyArrayCopies() throws Exception
+	public void testCopyArrayMakesList() throws Exception
 	{
 		String[] original = new String[] { "hello", "whirled" };
-		String[] copy = (String[]) new Document(original).copy().get();
-		assertEquals(Arrays.asList(original), Arrays.asList(copy));
+		Object copy = new Document(original).copy().get();
+		assertEquals(Arrays.asList(original), copy);
+	}
+
+	@Test
+	public void testCopyArrayDisconnected() throws Exception
+	{
+		String[] original = new String[] { "hello", "whirled" };
+		String[] copied = new String[] { "hello", "whirled" };
+		Object copy = new Document(copied).copy().get();
+		copied[0] = "hi";
+		copied[1] = "there";
+		assertEquals(Arrays.asList(original), copy);
 	}
 
 	@Test
@@ -412,7 +407,7 @@ public class DocumentTest
 		catch (IllegalArgumentException e)
 		{
 			// Expected.
-			assertEquals("http://swoop.com: class java.net.URL not copyable", e.getMessage());
+			assertEquals("http://swoop.com: class java.net.URL: bad document node type", e.getMessage());
 		}
 	}
 

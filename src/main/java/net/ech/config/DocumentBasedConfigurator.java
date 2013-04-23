@@ -65,7 +65,7 @@ public class DocumentBasedConfigurator
 		public Object build()
 			throws ConfigException
 		{
-			return snapReference(document, Object.class);
+			return snapReference(document, null);
 		}
 
 		public <T> T build(Class<T> requiredClass)
@@ -74,11 +74,11 @@ public class DocumentBasedConfigurator
 			return requiredClass.cast(snapReference(document, requiredClass));
 		}
 
-		private Object snapReference(Document dq, Class<?> requiredClass)
+		private Object snapReference(Document dq, Class<?> typeHint)
 			throws ConfigException
 		{
 			try {
-				if (Document.class.equals(requiredClass)) {
+				if (Document.class.equals(typeHint)) {
 					return dq.copy();
 				}
 				else {
@@ -89,9 +89,12 @@ public class DocumentBasedConfigurator
 					}
 
 					if (!cache.containsKey(dq.getPath())) {
+						if (typeHint == null) {
+							typeHint = Object.class;
+						}
 						cache.put(
 							dq.getPath(),
-							dq.get(Map.class) != null ? materializeMap(dq, requiredClass) : materializeList(dq, requiredClass)
+							dq.get(Map.class) != null ? materializeMap(dq, typeHint) : materializeList(dq, typeHint)
 						);
 					}
 					return cache.get(dq.getPath());
@@ -131,7 +134,7 @@ public class DocumentBasedConfigurator
 			return baseDoc == null ? dq : dq.extend(baseDoc);
 		}
 
-		private Object materializeMap(Document dq, Class<?> requiredClass)
+		private Object materializeMap(Document dq, Class<?> typeHint)
 			throws IOException
 		{
 			Object refObject = handleRef(dq);
@@ -139,7 +142,7 @@ public class DocumentBasedConfigurator
 				return refObject;
 			}
 
-			Class<?> implClass = findImplementationClass(dq, requiredClass);
+			Class<?> implClass = findImplementationClass(dq, typeHint);
 			boolean pushedContext = updateContext(dq);
 
 			try {
@@ -202,38 +205,38 @@ public class DocumentBasedConfigurator
 			return null;
 		}
 
-		private Object materializeList(Document dq, Class<?> requiredClass)
+		private Object materializeList(Document dq, Class<?> typeHint)
 			throws IOException
 		{
-			if (Object.class.equals(requiredClass) || List.class.equals(requiredClass)) {
+			if (Object.class.equals(typeHint) || List.class.equals(typeHint)) {
 				List<Object> result = new ArrayList<Object>();
 				listProperties(dq, result);
 				return result;
 			}
 
-			if (requiredClass.isArray()) {
-				Object result =  Array.newInstance(requiredClass.getComponentType(), ((List) dq.get()).size());
-				arrayProperties(dq, requiredClass.getComponentType(), result);
+			if (typeHint.isArray()) {
+				Object result =  Array.newInstance(typeHint.getComponentType(), ((List) dq.get()).size());
+				arrayProperties(dq, typeHint.getComponentType(), result);
 				return result;
 			}
 
-			throw new InternalConfigException(requiredClass + " cannot be configured with an array");
+			throw new InternalConfigException(typeHint + " cannot be configured with an array");
 		}
 
-		private Class<?> findImplementationClass(Document dq, Class<?> requiredClass)
+		private Class<?> findImplementationClass(Document dq, Class<?> typeHint)
 			throws IOException
 		{
 			Class<?> implClass;
 			try {
-				implClass = dq.find("__type").isNull() ? requiredClass : Class.forName(dq.find("__type").require(String.class));
+				implClass = dq.find("__type").isNull() ? typeHint : Class.forName(dq.find("__type").require(String.class));
 			}
 			catch (ClassNotFoundException e) {
 				throw new InternalConfigException(e);
 			}
 
 			// Catch type mismatches.
-			if (!requiredClass.equals(implClass)) {
-				implClass.asSubclass(requiredClass);  // throws ClassCastException
+			if (!typeHint.equals(implClass)) {
+				implClass.asSubclass(typeHint);  // throws ClassCastException
 			}
 
 			if (Map.class.equals(implClass) || Object.class.equals(implClass)) {
@@ -277,7 +280,12 @@ public class DocumentBasedConfigurator
 			for (Document cdq : dq.children()) {
 				String key = cdq.getPath().getLast().toString();
 				if (!key.startsWith("__")) {
-					map.put(key, snapReference(cdq, bpm == null ? Object.class : bpm.getPropertyClass(key)));
+					Class<?> expectedPropertyType = Object.class;
+					if (bpm != null) {
+						bpm.assertProperty(key);
+						expectedPropertyType = bpm.getPropertyClass(key);
+					}
+					map.put(key, snapReference(cdq, expectedPropertyType));
 				}
 			}
 		}

@@ -45,6 +45,19 @@ public class BeanPropertyMap
 		return propDescs.containsKey(key) ?  propDescs.get(key).getPropertyType() : null;
 	}
 
+	public boolean hasProperty(String key)
+	{
+		return propDescs.containsKey(key);
+	}
+
+	public void assertProperty(String key)
+		throws BeanException
+	{
+		if (!hasProperty(key)) {
+			throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + key + ": no such property");
+		}
+	}
+
 	@Override
 	public Set<Map.Entry<String,Object>> entrySet()
 	{
@@ -95,9 +108,7 @@ public class BeanPropertyMap
 	@Override
 	public Object put(String key, Object value)
 	{
-		if (!propDescs.containsKey(key)) {
-			throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + key + ": no such property");
-		}
+		assertProperty(key);
 		return setPropertyValue(propDescs.get(key), value);
 	}
 

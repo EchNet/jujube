@@ -15,6 +15,10 @@ import net.ech.doc.DocumentResolver;
 import net.ech.doc.DocPath;
 import net.ech.util.BeanPropertyMap;
 
+/**
+ * Configurator implementation that interprets a {#link net.ech.doc.Document} hierarchy as
+ * configuration and builds a parallel object tree.
+ */
 public class DocumentBasedConfigurator
 	implements Configurator
 {
@@ -22,7 +26,17 @@ public class DocumentBasedConfigurator
 
 	private Document document;
 	private DocumentResolver documentResolver;
-	private Map<DocPath,Object> cache;
+
+	public DocumentBasedConfigurator(Document document)
+	{
+		this.document = document;
+	}
+
+	public DocumentBasedConfigurator(Document document, DocumentResolver documentResolver)
+	{
+		this(document);
+		this.documentResolver = documentResolver;
+	}
 
 	public DocumentBasedConfigurator(String key, DocumentResolver documentResolver)
 		throws IOException
@@ -30,13 +44,9 @@ public class DocumentBasedConfigurator
 		this(documentResolver.resolve(key).produce(), documentResolver);
 	}
 
-	public DocumentBasedConfigurator(Document document, DocumentResolver documentResolver)
-	{
-		this.document = document;
-		this.documentResolver = documentResolver;
-		this.cache = new HashMap<DocPath,Object>();
-	}
-
+	/**
+	 * Produce the object described by the document.
+	 */
 	@Override
 	public Object configure()
 		throws ConfigException
@@ -44,13 +54,17 @@ public class DocumentBasedConfigurator
 		return new Builder().build();
 	}
 
+	/**
+	 * Produce the object described by the document.
+	 * @param requiredClass  fail if the object cannot be coerced to the given type
+	 */
 	@Override
 	public <T> T configure(Class<T> requiredClass)
 		throws ConfigException
 	{
 		return new Builder().build(requiredClass);
 	}
-		
+
 	private class Builder
 	{
 		private Map<String,Object> context = new HashMap<String,Object>();
@@ -58,47 +72,38 @@ public class DocumentBasedConfigurator
 
 		Builder()
 		{
-			context.put("$document", document);
-			context.put("$resolver", documentResolver);
+			context.put("$config.root", document);
+			context.put("$config.local", document);
+			if (documentResolver != null) {
+				context.put("$config.resolver", documentResolver);
+			}
 		}
 
 		public Object build()
 			throws ConfigException
 		{
-			return snapReference(document, null);
+			return materialize(document, null);
 		}
 
 		public <T> T build(Class<T> requiredClass)
 			throws ConfigException
 		{
-			return requiredClass.cast(snapReference(document, requiredClass));
+			return requiredClass.cast(materialize(document, requiredClass));
 		}
 
-		private Object snapReference(Document dq, Class<?> typeHint)
+		private Object materialize(Document dq, Class<?> typeHint)
 			throws ConfigException
 		{
 			try {
-				if (Document.class.equals(typeHint)) {
-					return dq.copy();
-				}
-				else {
-					dq = fillDocument(dq);
+				dq = fillDocument(dq);
 
-					if (dq.get(Map.class) == null && dq.get(List.class) == null) {
-						return dq.get();
-					}
-
-					if (!cache.containsKey(dq.getPath())) {
-						if (typeHint == null) {
-							typeHint = Object.class;
-						}
-						cache.put(
-							dq.getPath(),
-							dq.get(Map.class) != null ? materializeMap(dq, typeHint) : materializeList(dq, typeHint)
-						);
-					}
-					return cache.get(dq.getPath());
+				if (dq.get(Map.class) != null) {
+					return materializeMap(dq, typeHint);
 				}
+				if (dq.get(List.class) != null) {
+					return materializeList(dq, typeHint);
+				}
+				return materializeScalar(dq, typeHint);
 			}
 			catch (ConfigException e) {
 				throw e;
@@ -124,6 +129,9 @@ public class DocumentBasedConfigurator
 		{
 			Document baseDoc = null;
 			for (String key : superList) {
+				if (documentResolver == null) {
+					throw new InternalConfigException("this configurator is not capable of resolving __extends");
+				}
 				Document superDoc = documentResolver.resolve(key).produce();
 				if (superDoc.isNull()) {
 					throw new InternalConfigException(key + ": (__extends) no such key");
@@ -142,14 +150,14 @@ public class DocumentBasedConfigurator
 				return refObject;
 			}
 
-			Class<?> implClass = findImplementationClass(dq, typeHint);
-			boolean pushedContext = updateContext(dq);
+			Class<?> implClass = findMapImplementationClass(dq, typeHint);
+			updateContext(dq);
 
 			try {
 				if (implClass == null) {
 					Map<String,Object> map = new HashMap<String,Object>();
 					mapProperties(dq, null, map);
-					return map;
+					return Document.class.equals(typeHint) ? new Document(map).copy() : map;
 				}
 
 				Document argsDoc = dq.find("__args");
@@ -167,11 +175,11 @@ public class DocumentBasedConfigurator
 				if (argsDoc.get(List.class) != null) {
 					List<Document> childDocs = argsDoc.children();
 					for (int i = 0; i < nParams; ++i) {
-						consParams[i] = snapReference(childDocs.get(i), cons.getParameterTypes()[nParams]);
+						consParams[i] = materialize(childDocs.get(i), cons.getParameterTypes()[nParams]);
 					}
 				}
 				else if (!argsDoc.isNull()) {
-					consParams[0] = snapReference(argsDoc, cons.getParameterTypes()[0]);
+					consParams[0] = materialize(argsDoc, cons.getParameterTypes()[0]);
 				}
 
 				Object obj = cons.newInstance(consParams);
@@ -189,9 +197,7 @@ public class DocumentBasedConfigurator
 				throw new InternalConfigException(e);
 			}
 			finally {
-				if (pushedContext) {
-					popContext();
-				}
+				popContext();
 			}
 		}
 
@@ -208,24 +214,37 @@ public class DocumentBasedConfigurator
 		private Object materializeList(Document dq, Class<?> typeHint)
 			throws IOException
 		{
-			if (Object.class.equals(typeHint) || List.class.equals(typeHint)) {
-				List<Object> result = new ArrayList<Object>();
-				listProperties(dq, result);
-				return result;
+			if (typeHint == null || Object.class.equals(typeHint) || List.class.equals(typeHint)) {
+				return listProperties(dq);
 			}
-
-			if (typeHint.isArray()) {
+			else if (typeHint.isArray()) {
 				Object result =  Array.newInstance(typeHint.getComponentType(), ((List) dq.get()).size());
 				arrayProperties(dq, typeHint.getComponentType(), result);
 				return result;
+			}
+			else if (typeHint.equals(Document.class)) {
+				return dq.copy();
 			}
 
 			throw new InternalConfigException(typeHint + " cannot be configured with an array");
 		}
 
-		private Class<?> findImplementationClass(Document dq, Class<?> typeHint)
+		private Object materializeScalar(Document dq, Class<?> typeHint)
 			throws IOException
 		{
+			return Document.class.equals(typeHint) ? dq : dq.get();
+		}
+
+		private Class<?> findMapImplementationClass(Document dq, Class<?> typeHint)
+			throws IOException
+		{
+			if (typeHint == null) {
+				typeHint = Object.class;
+			}
+			else if (typeHint.equals(Document.class)) {
+				typeHint = Map.class;
+			}
+
 			Class<?> implClass;
 			try {
 				implClass = dq.find("__type").isNull() ? typeHint : Class.forName(dq.find("__type").require(String.class));
@@ -285,7 +304,7 @@ public class DocumentBasedConfigurator
 						bpm.assertProperty(key);
 						expectedPropertyType = bpm.getPropertyClass(key);
 					}
-					map.put(key, snapReference(cdq, expectedPropertyType));
+					map.put(key, materialize(cdq, expectedPropertyType));
 				}
 			}
 		}
@@ -295,16 +314,18 @@ public class DocumentBasedConfigurator
 		{
 			int index = 0;
 			for (Document cdq : dq.children()) {
-				Array.set(result, index++, snapReference(cdq, implElementClass));
+				Array.set(result, index++, materialize(cdq, implElementClass));
 			}
 		}
 
-		private void listProperties(Document dq, List<Object> result)
+		private List<Object> listProperties(Document dq)
 			throws IOException
 		{
+			List<Object> result = new ArrayList<Object>();
 			for (Document cdq : dq.children()) {
-				result.add(snapReference(cdq, Object.class));
+				result.add(materialize(cdq, Object.class));
 			}
+			return result;
 		}
 
 		private Object handleRef(Document dq)
@@ -313,25 +334,25 @@ public class DocumentBasedConfigurator
 			String ref = dq.find("__ref").cast(String.class, null);
 			if (ref != null) {
 				if (!context.containsKey(ref)) {
-					throw new IOException(ref + ": unresolved reference");
+					throw new IOException(ref + ": undefined");
 				}
 				return context.get(ref);
 			}
 			return null;
 		}
 
-		private boolean updateContext(Document dq)
+		private void updateContext(Document dq)
 			throws IOException
 		{
+			Map<String,Object> newContext = new HashMap<String,Object>(context);
+			newContext.putAll(context);
+			newContext.put("$config.local", dq);
 			Document contextDoc = dq.find("__context");
 			if (contextDoc.cast(Map.class, null) != null) {
-				Map<String,Object> newContext = new HashMap<String,Object>(context);
 				mapProperties(contextDoc, null, newContext);
-				contextHistory.add(context);
-				context = newContext;
-				return true;
 			}
-			return false;
+			contextHistory.add(context);
+			context = newContext;
 		}
 
 		private void popContext()

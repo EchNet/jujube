@@ -244,21 +244,6 @@ public class DocumentBasedConfiguratorTest
 	}
 
 	@Test
-	public void testCachedObject() throws Exception
-	{
-		Hash hash = new Hash()
-			.addEntry("thing", new Hash()
-				.addEntry("property", "manilla"));
-		Document doc = new Document(hash);
-		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc.find("thing"), new ChildDocumentResolver(doc));
-		Bean bean1 = w.configure(Bean.class);
-		Bean bean2 = w.configure(Bean.class);
-		assertNotNull(bean1);
-		assertEquals("manilla", bean1.getProperty());
-		assertTrue("not same bean", bean1 == bean2);
-	}
-
-	@Test
 	public void testExtends() throws Exception
 	{
 		Map<String,String> bean = configure("thing2", Map.class,
@@ -312,6 +297,100 @@ public class DocumentBasedConfiguratorTest
 					.addEntry("y", new Hash("__ref", "x"))));
 		assertTrue(bean.containsKey("y"));
 		assertEquals(new Integer(1), bean.get("y"));
+	}
+
+	@Test
+	public void testNestedLocalConfigReference() throws Exception
+	{
+		Object bean = configure(new Hash()
+			.addEntry("level", 0)
+			.addEntry("local", new Hash("__ref", "$config.local"))
+			.addEntry("child", new Hash()
+				.addEntry("level", 1)
+				.addEntry("local", new Hash("__ref", "$config.local"))
+				.addEntry("child", new Hash()
+					.addEntry("level", 2)
+					.addEntry("local", new Hash("__ref", "$config.local")))));
+		Object obj = bean;
+		while (obj != null) {
+			assertTrue(obj instanceof Map);
+			Map<String,Object> map = (Map<String,Object>) obj;
+			assertTrue(map.containsKey("level"));
+			int level = (Integer) map.get("level");
+			assertTrue(map.containsKey("local"));
+			assertTrue(map.get("local") instanceof Document);
+			assertEquals(level, (((Document) map.get("local")).find("level").get(Integer.class)).intValue());
+			if (map.containsKey("child")) {
+				obj = map.get("child");
+			}
+			else {
+				obj = null;
+			}
+		}
+	}
+
+	@Test
+	public void testNestedLocalConfigReferenceAsConstructorArg() throws Exception
+	{
+		Object configured = configure(new Hash()
+			.addEntry("__ID", 0)
+			.addEntry("bean", new Hash()
+				.addEntry("__ID", 1)
+				.addEntry("__type", "net.ech.config.DocumentBean")
+				.addEntry("__args", new Hash()
+					.addEntry("__ID", 2)
+					.addEntry("__ref", "$config.local"))));
+		assertTrue("got a container", configured instanceof Map);
+		assertTrue("map contains bean", ((Map<String,Object>)configured).containsKey("bean"));
+		assertTrue("bean is of the correct type", ((Map<String,Object>)configured).get("bean") instanceof DocumentBean);
+		Document doc = ((DocumentBean)(((Map<String,Object>)configured).get("bean"))).getProperty();
+		assertNotNull("bean's property is set", doc);
+		assertEquals("bean's property is set to the correct document", new Integer(1), doc.find("__ID").get());
+	}
+
+	@Test
+	public void testImplicitDocumentMap() throws Exception
+	{
+		Object configured = configure(new Hash()
+			.addEntry("__type", "net.ech.config.DocumentBean")
+			.addEntry("property", new Hash()
+				.addEntry("_ID", 1)));
+		assertTrue("bean is of the correct type", configured instanceof DocumentBean);
+		Document doc = ((DocumentBean)configured).getProperty();
+		assertNotNull("bean's property is set", doc);
+		assertEquals("bean's property is set to the correct document", new Integer(1), doc.find("_ID").get());
+	}
+
+	@Test
+	public void testImplicitDocumentList() throws Exception
+	{
+		Object configured = configure(new Hash()
+			.addEntry("__ID", 0)
+			.addEntry("__type", "net.ech.config.DocumentBean")
+			.addEntry("property", Arrays.asList(new String[] { "abc", "123" })));
+		assertTrue("bean is of the correct type", configured instanceof DocumentBean);
+		Document doc = ((DocumentBean)configured).getProperty();
+		assertNotNull("bean's property is set", doc);
+		assertEquals("bean's property is set to the correct document", 2, doc.get(List.class).size());
+	}
+
+	@Test
+	public void testImplicitDocumentScalar() throws Exception
+	{
+		Object configured = configure(new Hash()
+			.addEntry("__type", "net.ech.config.DocumentBean")
+			.addEntry("property", 123));
+		assertTrue("bean is of the correct type", configured instanceof DocumentBean);
+		Document doc = ((DocumentBean)configured).getProperty();
+		assertNotNull("bean's property is set", doc);
+		assertEquals("bean's property is set to the correct document", new Integer(123), doc.get(Integer.class));
+	}
+
+	private Object configure(Hash hash) throws Exception
+	{
+		Document doc = new Document(hash);
+		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc);
+		return w.configure(Object.class);
 	}
 
 	private <T> T configure(String key, Class<T> clazz, Hash hash) throws Exception

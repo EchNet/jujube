@@ -223,41 +223,6 @@ public class BeanPropertyMapTest
 		assertEquals(Collections.singletonList("abc"), bean.listProp);
 	}
 
-	@Test
-	public void testAntiCoercions() throws Exception
-	{
-		BeanType2 bean = new BeanType2();
-		Map<String,Object> map = new BeanPropertyMap(bean);
-
-		try {
-			map.put("charProp", "abc");
-			fail("should not be reached");
-		}
-		catch (BeanException e) {
-		}
-
-		try {
-			map.put("arrayProp", "a");
-			fail("should not be reached");
-		}
-		catch (BeanException e) {
-		}
-
-		try {
-			map.put("arrayProp", 12);
-			fail("should not be reached");
-		}
-		catch (BeanException e) {
-		}
-
-		try {
-			map.put("listProp", 12);
-			fail("should not be reached");
-		}
-		catch (BeanException e) {
-		}
-	}
-
 	private static class BeanType1
 	{
 		private String a;

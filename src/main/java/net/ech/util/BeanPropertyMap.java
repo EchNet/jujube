@@ -121,7 +121,7 @@ public class BeanPropertyMap
 		Object oldValue = getPropertyValue(pDesc, false);
 		Exception error = null;
 		try {
-			writeMethod.invoke(bean, new Object[] { coerce(value, pDesc.getPropertyType()) });
+			writeMethod.invoke(bean, new Object[] { BeanPropertyMapSupport.coerce(pDesc.getPropertyType(), value) });
 			return oldValue;
 		}
 		catch (Exception e) {
@@ -152,39 +152,5 @@ public class BeanPropertyMap
 			error = e;
 		}
 		throw new BeanException(getBeanClass(), pDesc.getReadMethod().toString(), error);
-	}
-
-	/**
-	 * Built-in type conversions, to work within the limitations of the JSON parser.
-	 */
-	private Object coerce(Object obj, Class<?> expectedClass)
-	{
-		if (obj != null && !expectedClass.isAssignableFrom(obj.getClass())) {
-			// Permit assignment of single character string to char.
-			if (obj instanceof String) {
-				String str = (String) obj;
-				if ((expectedClass.equals(Character.class) ||
-					 expectedClass.equals(char.class)) && str.length() == 1) {
-					return new Character(str.charAt(0));
-				}
-			}
-
-			// Permit assignment of array to List.
-			if (expectedClass.isAssignableFrom(List.class) && obj.getClass().isArray()) {
-				return Arrays.asList((Object[]) obj);
-			}
-
-			// Permit assignment of List to array.
-			try {
-				if (expectedClass.isArray() && (obj instanceof List)) {
-					return ((List) obj).toArray((Object[]) Array.newInstance(expectedClass.getComponentType(), ((List) obj).size()));
-				}
-			}
-			catch (ArrayStoreException e) {
-				throw new RuntimeException("can't coerce " + obj + " to " + expectedClass, e);
-			}
-		}
-
-		return obj;
 	}
 }

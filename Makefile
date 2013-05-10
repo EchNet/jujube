@@ -1,6 +1,6 @@
 # jujube project Makefile
 
-all: clean build start
+all: clean build test
 
 build: 
 	mvn -q compile

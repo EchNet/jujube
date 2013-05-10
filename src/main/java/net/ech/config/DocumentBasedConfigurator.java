@@ -378,16 +378,4 @@ public class DocumentBasedConfigurator
 			return subtypeDescriptorMap.get(iClass);
 		}
 	}
-
-	private static class InternalConfigException
-		extends IOException
-	{
-		InternalConfigException(String msg) {
-			super(msg);
-		}
-
-		InternalConfigException(Exception e) {
-			super(e);
-		}
-	}
 }

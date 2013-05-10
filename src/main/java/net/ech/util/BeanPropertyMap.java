@@ -1,6 +1,6 @@
 package net.ech.util;
 
-import java.beans.*;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -22,16 +22,12 @@ public class BeanPropertyMap
 		throws BeanException
 	{
 		this.bean = bean;
-		this.propDescs = new HashMap<String,PropertyDescriptor>();
-
 		try {
-			BeanInfo bInfo = Introspector.getBeanInfo(getBeanClass(), Object.class);
-			for (PropertyDescriptor pd : bInfo.getPropertyDescriptors()) {
-				propDescs.put(pd.getName(), pd);
-			}
+			this.propDescs = BeanPropertyMapSupport.getPropertyDescriptorMap(getBeanClass());
 		}
-		catch (IntrospectionException e) {
-			// Tried really hard to make it happen.  Maybe it doesn't.
+		catch (java.beans.IntrospectionException e) {
+			// Tried hard to make it happen in unit tests.  Maybe it doesn't.
+			throw new BeanException(getBeanClass(), e);
 		}
 	}
 

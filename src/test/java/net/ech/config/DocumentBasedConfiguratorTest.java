@@ -139,7 +139,7 @@ public class DocumentBasedConfiguratorTest
 			fail("should not be reached");
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing: does not appear to configure a subtype of interface net.ech.config.IBean", e.getMessage());
+			assertEquals("thing: does not appear to configure a subtype of interface net.ech.config.IBean", e.getMessage());
 			assertNotNull(e.getCause());
 		}
 	}
@@ -156,7 +156,7 @@ public class DocumentBasedConfiguratorTest
 			fail("should not be reached");
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing: ambiguous subtype", e.getMessage());
+			assertEquals("thing: ambiguous subtype", e.getMessage());
 			assertNotNull(e.getCause());
 		}
 	}
@@ -222,7 +222,7 @@ public class DocumentBasedConfiguratorTest
 			fail("should not be reached");
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing: class net.ech.config.Bean cannot be configured with an array", e.getMessage());
+			assertEquals("thing: cannot coerce [{property=manilla}, {property=vanilla}] to type net.ech.config.Bean", e.getMessage());
 			assertNotNull(e.getCause());
 		}
 	}
@@ -238,7 +238,7 @@ public class DocumentBasedConfiguratorTest
 			fail("should not be reached");
 		}
 		catch (IOException e) {
-			assertEquals("cannot configure thing: does not appear to configure a subtype of interface java.util.List", e.getMessage());
+			assertEquals("thing: does not appear to configure a subtype of interface java.util.List", e.getMessage());
 			assertNotNull(e.getCause());
 		}
 	}
@@ -384,6 +384,16 @@ public class DocumentBasedConfiguratorTest
 		Document doc = ((DocumentBean)configured).getProperty();
 		assertNotNull("bean's property is set", doc);
 		assertEquals("bean's property is set to the correct document", new Integer(123), doc.get(Integer.class));
+	}
+
+	@Test
+	public void testListToSetCoercion() throws Exception
+	{
+		Document doc = new Document(Arrays.asList(new String[] { "abc", "def" }));
+		DocumentBasedConfigurator w = new DocumentBasedConfigurator(doc);
+		Object configured = w.configure(Set.class);
+		assertTrue("bean is of the correct type", configured instanceof Set);
+		assertEquals(2, ((Set<Object>) configured).size());
 	}
 
 	private Object configure(Hash hash) throws Exception

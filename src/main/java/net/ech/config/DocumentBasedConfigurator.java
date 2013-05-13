@@ -14,6 +14,8 @@ import net.ech.doc.Document;
 import net.ech.doc.DocumentResolver;
 import net.ech.doc.DocPath;
 import net.ech.util.BeanPropertyMap;
+import net.ech.util.TypeCoercionSupport;
+import net.ech.util.TypeMismatchException;
 
 /**
  * Configurator implementation that interprets a {#link net.ech.doc.Document} hierarchy as
@@ -97,19 +99,26 @@ public class DocumentBasedConfigurator
 			try {
 				dq = fillDocument(dq);
 
+				Object matter;
 				if (dq.get(Map.class) != null) {
-					return materializeMap(dq, typeHint);
+					matter =  materializeMap(dq, typeHint);
 				}
-				if (dq.get(List.class) != null) {
-					return materializeList(dq, typeHint);
+				else if (dq.get(List.class) != null) {
+					matter =  materializeList(dq, typeHint);
 				}
-				return materializeScalar(dq, typeHint);
+				else {
+					matter = materializeScalar(dq, typeHint);
+				}
+				return typeHint == null ? matter : TypeCoercionSupport.coerce(typeHint, matter);
 			}
 			catch (ConfigException e) {
 				throw e;
 			}
+			catch (TypeMismatchException e) {
+				throw dq.getPath().size() == 0 ? new ConfigException(e) : new ConfigException(dq.getPath().toString() + ": " + e.getMessage(), e);
+			}
 			catch (IOException e) {
-				throw new ConfigException("cannot configure " + dq.getPath() + ": " + e.getMessage(), e);
+				throw dq.getPath().size() == 0 ? new ConfigException(e) : new ConfigException(dq.getPath().toString() + ": " + e.getMessage(), e);
 			}
 		}
 
@@ -214,19 +223,7 @@ public class DocumentBasedConfigurator
 		private Object materializeList(Document dq, Class<?> typeHint)
 			throws IOException
 		{
-			if (typeHint == null || Object.class.equals(typeHint) || List.class.equals(typeHint)) {
-				return listProperties(dq);
-			}
-			else if (typeHint.isArray()) {
-				Object result =  Array.newInstance(typeHint.getComponentType(), ((List) dq.get()).size());
-				arrayProperties(dq, typeHint.getComponentType(), result);
-				return result;
-			}
-			else if (typeHint.equals(Document.class)) {
-				return dq.copy();
-			}
-
-			throw new InternalConfigException(typeHint + " cannot be configured with an array");
+			return Document.class.equals(typeHint) ? dq.copy() : listProperties(dq, typeHint != null && typeHint.isArray() ? typeHint.getComponentType() : Object.class);
 		}
 
 		private Object materializeScalar(Document dq, Class<?> typeHint)
@@ -309,21 +306,12 @@ public class DocumentBasedConfigurator
 			}
 		}
 
-		private void arrayProperties(Document dq, Class<?> implElementClass, Object result)
-			throws IOException
-		{
-			int index = 0;
-			for (Document cdq : dq.children()) {
-				Array.set(result, index++, materialize(cdq, implElementClass));
-			}
-		}
-
-		private List<Object> listProperties(Document dq)
+		private List<Object> listProperties(Document dq, Class<?> typeHint)
 			throws IOException
 		{
 			List<Object> result = new ArrayList<Object>();
 			for (Document cdq : dq.children()) {
-				result.add(materialize(cdq, Object.class));
+				result.add(materialize(cdq, typeHint));
 			}
 			return result;
 		}

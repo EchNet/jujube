@@ -121,7 +121,7 @@ public class BeanPropertyMap
 		Object oldValue = getPropertyValue(pDesc, false);
 		Exception error = null;
 		try {
-			writeMethod.invoke(bean, new Object[] { BeanPropertyMapSupport.coerce(pDesc.getPropertyType(), value) });
+			writeMethod.invoke(bean, new Object[] { TypeCoercionSupport.coerce(pDesc.getPropertyType(), value) });
 			return oldValue;
 		}
 		catch (Exception e) {

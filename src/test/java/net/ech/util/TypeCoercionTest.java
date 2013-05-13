@@ -18,6 +18,57 @@ public class TypeCoercionTest
 	}
 
 	@Test
+	public void testPositiveDoubleToInt() throws Exception
+	{
+		assertEquals(new Integer(-1000007), BeanPropertyMapSupport.coerce(int.class, -1000007.0));
+	}
+
+	@Test
+	public void testNegativeDoubleToInt() throws Exception
+	{
+		try {
+			BeanPropertyMapSupport.coerce(int.class, 0.232);
+			fail("should not be reached");
+		}
+		catch (TypeMismatchException e) {
+		}
+	}
+
+	@Test
+	public void testPositiveLongToInt() throws Exception
+	{
+		assertEquals(new Integer(-1000007), BeanPropertyMapSupport.coerce(int.class, -1000007L));
+	}
+
+	@Test
+	public void testNegativeLongToInt() throws Exception
+	{
+		try {
+			BeanPropertyMapSupport.coerce(int.class, 10000000000000L);
+			fail("should not be reached");
+		}
+		catch (TypeMismatchException e) {
+		}
+	}
+
+	@Test
+	public void testPositiveStringToInt() throws Exception
+	{
+		assertEquals(new Integer(123), BeanPropertyMapSupport.coerce(int.class, "123"));
+	}
+
+	@Test
+	public void testNegativeStringToInt() throws Exception
+	{
+		try {
+			BeanPropertyMapSupport.coerce(int.class, "a1&a2&a3");
+			fail("should not be reached");
+		}
+		catch (TypeMismatchException e) {
+		}
+	}
+
+	@Test
 	public void testPositiveStringToChar() throws Exception
 	{
 		assertEquals(new Character('a'), BeanPropertyMapSupport.coerce(char.class, "a"));

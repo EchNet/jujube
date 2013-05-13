@@ -16,6 +16,8 @@ class BeanPropertyMapSupport
 	private static TypeCoercerEntry[] typeCoercers = new TypeCoercerEntry[] {
 		new TypeCoercerEntry(List.class, new ListTypeCoercer()),
 		new TypeCoercerEntry(Set.class, new SetTypeCoercer()),
+		new TypeCoercerEntry(Integer.class, new IntegerTypeCoercer()),
+		new TypeCoercerEntry(int.class, new IntegerTypeCoercer()),
 		new TypeCoercerEntry(Character.class, new CharacterTypeCoercer()),
 		new TypeCoercerEntry(char.class, new CharacterTypeCoercer())
 	};

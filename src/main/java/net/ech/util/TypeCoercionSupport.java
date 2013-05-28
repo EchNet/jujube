@@ -16,6 +16,8 @@ public class TypeCoercionSupport
 		new TypeCoercerEntry(Set.class, new SetTypeCoercer()),
 		new TypeCoercerEntry(Integer.class, new IntegerTypeCoercer()),
 		new TypeCoercerEntry(int.class, new IntegerTypeCoercer()),
+		new TypeCoercerEntry(Double.class, new DoubleTypeCoercer()),
+		new TypeCoercerEntry(double.class, new DoubleTypeCoercer()),
 		new TypeCoercerEntry(Character.class, new CharacterTypeCoercer()),
 		new TypeCoercerEntry(char.class, new CharacterTypeCoercer())
 	};

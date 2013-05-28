@@ -69,6 +69,29 @@ public class TypeCoercionTest
 	}
 
 	@Test
+	public void testNegativeStringToDouble() throws Exception
+	{
+		try {
+			TypeCoercionSupport.coerce(double.class, "123");
+			fail("should not be reached");
+		}
+		catch (TypeMismatchException e) {
+		}
+	}
+
+	@Test
+	public void testPositiveFloatToDouble() throws Exception
+	{
+		assertEquals(3.03, ((Double)TypeCoercionSupport.coerce(double.class, 3.03F)).doubleValue(), 0.001);
+	}
+
+	@Test
+	public void testPositiveIntToDouble() throws Exception
+	{
+		assertEquals(new Double(3), TypeCoercionSupport.coerce(Double.class, 3));
+	}
+
+	@Test
 	public void testPositiveStringToChar() throws Exception
 	{
 		assertEquals(new Character('a'), TypeCoercionSupport.coerce(char.class, "a"));

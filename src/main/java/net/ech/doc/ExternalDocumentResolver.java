@@ -3,31 +3,21 @@ package net.ech.doc;
 import java.io.IOException;
 
 public class ExternalDocumentResolver
-	extends ResourceDocumentResolver
+	extends PluginDocumentResolver
 	implements DocumentResolver
 {
-	private FileDocumentResolver fileDocumentResolver = new FileDocumentResolver();
+	private final static FileDocumentResolver fileDocumentResolver = new FileDocumentResolver();
 
-	@Override
-	public DocumentProducer resolve(String key)
-		throws IOException
+	public ExternalDocumentResolver()
 	{
-		if (key.startsWith("file:")) {
-			return fileDocumentResolver.resolve(stripPrefix(key));
-		}
-		else if (key.startsWith("resource:")) {
-			return super.resolve(stripPrefix(key));
-		}
-		else if (key.startsWith("http:")) {
-			return new UrlDocumentProducer(key);
-		}
-		else {
-			return fileDocumentResolver.resolve(key);
-		}
-	}
-
-	private static String stripPrefix(String key)
-	{
-		return key.substring(key.indexOf(':') + 1);
+		addResolver("file", true, fileDocumentResolver);
+		addResolver("resource", true, new ResourceDocumentResolver());
+		setDefaultProtocolResolver(new DocumentResolver() {
+			@Override
+			public DocumentProducer resolve(String key) {
+				return new UrlDocumentProducer(key);
+			}
+		});
+		setDefaultResolver(fileDocumentResolver);
 	}
 }

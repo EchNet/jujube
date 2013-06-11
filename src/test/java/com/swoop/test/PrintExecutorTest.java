@@ -20,7 +20,6 @@ public class PrintExecutorTest
 	{
 		// Create a document source that loads from a single JSON document.
 		ExternalDocumentResolver genResolver = new ExternalDocumentResolver();
-		genResolver.setAppClass(PrintExecutorTest.class);
 		Document doc = genResolver.resolve("resource:hello").produce();
 		docResolver = new ChildDocumentResolver(doc);
 	}

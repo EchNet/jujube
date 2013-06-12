@@ -5,14 +5,24 @@ import java.io.IOException;
 public class ResourceDocumentResolver
 	implements DocumentResolver
 {
-	private Class appClass = ResourceDocumentResolver.class;
+	private Class<?> appClass;
 
-	public Class getAppClass()
+	public ResourceDocumentResolver()
+	{
+		this(ResourceDocumentResolver.class);
+	}
+
+	public ResourceDocumentResolver(Class<?> appClass)
+	{
+		setAppClass(appClass);
+	}
+
+	public Class<?> getAppClass()
 	{
 		return appClass;
 	}
 
-	public void setAppClass(Class appClass)
+	public void setAppClass(Class<?> appClass)
 	{
 		this.appClass = appClass;
 	}

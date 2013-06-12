@@ -20,4 +20,9 @@ public class ExternalDocumentResolver
 		});
 		setDefaultResolver(fileDocumentResolver);
 	}
+
+	public ExternalDocumentResolver(Class<?> appClass)
+	{
+		addResolver("resource", true, new ResourceDocumentResolver(appClass));
+	}
 }

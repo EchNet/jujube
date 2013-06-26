@@ -191,6 +191,26 @@ public class BeanPropertyMapTest
 	}
 
 	@Test
+	public void testStringToBoolCoercion() throws Exception
+	{
+		BeanType2 bean = new BeanType2();
+		Map<String,Object> map = new BeanPropertyMap(bean);
+		assertFalse(bean.boolProp);
+		map.put("boolProp", "true");
+		assertTrue(bean.boolProp);
+	}
+
+	@Test
+	public void testBooleanToBoolCoercion() throws Exception
+	{
+		BeanType2 bean = new BeanType2();
+		Map<String,Object> map = new BeanPropertyMap(bean);
+		assertFalse(bean.boolProp);
+		map.put("boolProp", new Boolean(true));
+		assertTrue(bean.boolProp);
+	}
+
+	@Test
 	public void testListToArrayCoercion() throws Exception
 	{
 		BeanType2 bean = new BeanType2();
@@ -242,7 +262,10 @@ public class BeanPropertyMapTest
 		String[] arrayProp;
 		Number[] nArrayProp;
 		List<String> listProp;
+		boolean boolProp;
 
+		public void setBoolProp(boolean boolProp) { this.boolProp = boolProp; }
+		public boolean getBoolProp() { return boolProp; }
 		public void setCharacterProp(Character characterProp) { this.characterProp = characterProp; }
 		public Character getCharacterProp() { return characterProp; }
 		public void setCharProp(char charProp) { this.charProp = charProp; }

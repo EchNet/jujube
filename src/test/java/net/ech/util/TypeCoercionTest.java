@@ -143,6 +143,15 @@ public class TypeCoercionTest
 	}
 
 	@Test
+	public void testPositiveBooleanToBoolean() throws Exception
+	{
+		assertEquals(new Boolean(true), TypeCoercionSupport.coerce(boolean.class, true));
+		assertEquals(new Boolean(false), TypeCoercionSupport.coerce(boolean.class, false));
+		assertEquals(new Boolean(true), TypeCoercionSupport.coerce(Boolean.class, true));
+		assertEquals(new Boolean(false), TypeCoercionSupport.coerce(Boolean.class, false));
+	}
+
+	@Test
 	public void testPositiveListToArray() throws Exception
 	{
 		List<Integer> originalList = new ArrayList<Integer>();

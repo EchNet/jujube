@@ -19,7 +19,9 @@ public class TypeCoercionSupport
 		new TypeCoercerEntry(Double.class, new DoubleTypeCoercer()),
 		new TypeCoercerEntry(double.class, new DoubleTypeCoercer()),
 		new TypeCoercerEntry(Character.class, new CharacterTypeCoercer()),
-		new TypeCoercerEntry(char.class, new CharacterTypeCoercer())
+		new TypeCoercerEntry(char.class, new CharacterTypeCoercer()),
+		new TypeCoercerEntry(Boolean.class, new BooleanTypeCoercer()),
+		new TypeCoercerEntry(boolean.class, new BooleanTypeCoercer())
 	};
 
 	/**

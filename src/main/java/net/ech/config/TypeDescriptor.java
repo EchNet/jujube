@@ -1,7 +1,5 @@
 package net.ech.config;
 
-import java.lang.reflect.*;
-
 /**
  * Support for the Subtypeable pattern.  
  */

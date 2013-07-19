@@ -3,7 +3,6 @@ package net.ech.util;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 class SetTypeCoercer
 	implements TypeCoercer
@@ -18,10 +17,10 @@ class SetTypeCoercer
 	{
 		// Permit assignment of array to Set.
 		if (rhsValue.getClass().isArray()) {
-			return new HashSet(Arrays.asList((Object[]) rhsValue));
+			return new HashSet<Object>(Arrays.asList((Object[]) rhsValue));
 		}
 		if (rhsValue instanceof Collection) {
-			return new HashSet((Collection) rhsValue);
+			return new HashSet<Object>((Collection<?>) rhsValue);
 		}
 		return null;
 	}

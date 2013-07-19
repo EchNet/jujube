@@ -1,10 +1,8 @@
 package net.ech.util;
 
-import java.io.*;
 import java.util.*;
 import org.junit.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -210,6 +208,7 @@ public class BeanPropertyMapTest
 		assertTrue(bean.boolProp);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testListToArrayCoercion() throws Exception
 	{
@@ -220,6 +219,7 @@ public class BeanPropertyMapTest
 		assertEquals(new String[]{ "abc" }, bean.arrayProp);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testPolymorphListToArrayCoercion() throws Exception
 	{
@@ -250,8 +250,10 @@ public class BeanPropertyMapTest
 		public String getA() { return a; }
 		public void setA(String a) { this.a = a; }
 
+		@SuppressWarnings("unused")
 		public String getB() { return "b"; }
 
+		@SuppressWarnings("unused")
 		public void setC(String c) {}
 	}
 
@@ -264,22 +266,35 @@ public class BeanPropertyMapTest
 		List<String> listProp;
 		boolean boolProp;
 
+		@SuppressWarnings("unused")
 		public void setBoolProp(boolean boolProp) { this.boolProp = boolProp; }
+		@SuppressWarnings("unused")
 		public boolean getBoolProp() { return boolProp; }
+		@SuppressWarnings("unused")
 		public void setCharacterProp(Character characterProp) { this.characterProp = characterProp; }
+		@SuppressWarnings("unused")
 		public Character getCharacterProp() { return characterProp; }
+		@SuppressWarnings("unused")
 		public void setCharProp(char charProp) { this.charProp = charProp; }
+		@SuppressWarnings("unused")
 		public char getCharProp() { return charProp; }
+		@SuppressWarnings("unused")
 		public void setArrayProp(String[] arrayProp) { this.arrayProp = arrayProp; }
+		@SuppressWarnings("unused")
 		public String[] getArrayProp() { return arrayProp; }
+		@SuppressWarnings("unused")
 		public void setNumberArrayProp(Number[] nArrayProp) { this.nArrayProp = nArrayProp; }
+		@SuppressWarnings("unused")
 		public Number[] getNumberArrayProp() { return nArrayProp; }
+		@SuppressWarnings("unused")
 		public void setListProp(List<String> listProp) { this.listProp = listProp; }
+		@SuppressWarnings("unused")
 		public List<String> getListProp() { return listProp; }
 	}
 
 	private static class BeanType3
 	{
+		@SuppressWarnings("unused")
 		public String getA() { throw new RuntimeException("foo"); }
 	}
 }

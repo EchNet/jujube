@@ -9,8 +9,13 @@ class InternalConfigException
 	extends IOException
 {
     /**
-     * Default constructor.
-     */
+	 * 
+	 */
+	private static final long	serialVersionUID	= 6898515116524653423L;
+
+	/**
+	 * Default constructor.
+	 */
     public InternalConfigException()
     {
     }

@@ -1,7 +1,5 @@
 package net.ech.doc;
 
-import java.io.IOException;
-
 public class ExternalDocumentResolver
 	extends PluginDocumentResolver
 	implements DocumentResolver

@@ -1,6 +1,5 @@
 package net.ech.doc;
 
-import java.io.*;
 import java.util.*;
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -19,6 +18,7 @@ public class JsonDeserializerTest
 			"  runtime: []" +
 			"}");
         assertTrue(decoded instanceof Map);
+		@SuppressWarnings("unchecked")
 		Map<String,Object> map = (Map<String,Object>) decoded;
 		Iterator<Map.Entry<String,Object>> iterator = map.entrySet().iterator();
 		assertTrue(iterator.hasNext());

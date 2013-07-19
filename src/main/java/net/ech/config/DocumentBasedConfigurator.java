@@ -1,9 +1,7 @@
 package net.ech.config;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import net.ech.doc.Document;
 import net.ech.doc.DocumentResolver;
-import net.ech.doc.DocPath;
 import net.ech.util.BeanPropertyMap;
 import net.ech.util.TypeCoercionSupport;
 import net.ech.util.TypeMismatchException;

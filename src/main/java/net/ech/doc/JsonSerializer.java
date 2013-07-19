@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class JsonSerializer
 {
-	private Map<Class,Formatter> formatters = new HashMap<Class,Formatter>();
+	private Map<Class<?>,Formatter> formatters = new HashMap<Class<?>,Formatter>();
 
 	public static interface Serializer
 	{
@@ -72,7 +72,7 @@ public class JsonSerializer
 	{
 		Formatter formatter = formatters.get(obj.getClass());
 		if (formatter == null) {
-			for (Map.Entry<Class,Formatter> entry : formatters.entrySet()) {
+			for (Map.Entry<Class<?>,Formatter> entry : formatters.entrySet()) {
 				if (entry.getKey().isInstance(obj)) {
 					formatter = entry.getValue();
 				}

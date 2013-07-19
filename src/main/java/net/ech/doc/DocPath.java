@@ -11,7 +11,12 @@ import java.util.ArrayList;
 public class DocPath
 	extends ArrayList<Object>
 {
-    public static DocPath parse(String expression)
+    /**
+	 * 
+	 */
+	private static final long	serialVersionUID	= 4909490446567421568L;
+
+	public static DocPath parse(String expression)
     {
 		DocPath path = new DocPath();
 		path.addAll(Arrays.asList(expression.split("\\.")));

@@ -1,8 +1,12 @@
 package net.ech.util;
 
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Access a JavaBean as a Map.
@@ -25,7 +29,7 @@ public class BeanPropertyMap
 		try {
 			this.propDescs = BeanPropertyMapSupport.getPropertyDescriptorMap(getBeanClass());
 		}
-		catch (java.beans.IntrospectionException e) {
+		catch (final java.beans.IntrospectionException e) {
 			// Tried hard to make it happen in unit tests.  Maybe it doesn't.
 			throw new BeanException(getBeanClass(), e);
 		}
@@ -59,40 +63,48 @@ public class BeanPropertyMap
 	{
 		return new AbstractSet<Map.Entry<String,Object>>()
 		{
+			@Override
 			public int size() {
 				return propDescs.size();
 			}
 
+			@Override
 			public Iterator<Map.Entry<String,Object>> iterator() {
 
 				return new Iterator<Map.Entry<String,Object>>()
 				{
 					Iterator<Map.Entry<String,PropertyDescriptor>> inner = propDescs.entrySet().iterator();
 
+					@Override
 					public boolean hasNext() {
 						return inner.hasNext();
 					}
 
+					@Override
 					public Map.Entry<String,Object> next() {
 
 						final PropertyDescriptor pDesc = inner.next().getValue();
 
 						return new Map.Entry<String,Object>() {
 
+							@Override
 							public String getKey() {
 								return pDesc.getName();
 							}
 
+							@Override
 							public Object getValue() {
 								return getPropertyValue(pDesc, true);
 							}
 
+							@Override
 							public Object setValue(Object value) {
 								return setPropertyValue(pDesc, value);
 							}
 						};
 					}
 
+					@Override
 					public void remove() {
 						throw new UnsupportedOperationException();
 					}
@@ -114,17 +126,17 @@ public class BeanPropertyMap
 	private Object setPropertyValue(PropertyDescriptor pDesc, Object value)
 		throws BeanException
 	{
-		Method writeMethod = pDesc.getWriteMethod();
+		final Method writeMethod = pDesc.getWriteMethod();
 		if (writeMethod == null) {
 			throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + pDesc.getName() + ": no setter");
 		}
-		Object oldValue = getPropertyValue(pDesc, false);
+		final Object oldValue = getPropertyValue(pDesc, false);
 		Exception error = null;
 		try {
 			writeMethod.invoke(bean, new Object[] { TypeCoercionSupport.coerce(pDesc.getPropertyType(), value) });
 			return oldValue;
 		}
-		catch (Exception e) {
+		catch (final Exception e) {
 			error = e;
 		}
 		throw new BeanException(getBeanClass(), writeMethod.toString(), error);
@@ -136,7 +148,7 @@ public class BeanPropertyMap
 	private Object getPropertyValue(PropertyDescriptor pDesc, boolean readRequired)
 		throws BeanException
 	{
-		Method readMethod = pDesc.getReadMethod();
+		final Method readMethod = pDesc.getReadMethod();
 		if (readMethod == null) {
 			if (readRequired) {
 				throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + pDesc.getName() + ": no getter");
@@ -148,7 +160,7 @@ public class BeanPropertyMap
 		try {
 			return readMethod.invoke(bean, null);
 		}
-		catch (Exception e) {
+		catch (final Exception e) {
 			error = e;
 		}
 		throw new BeanException(getBeanClass(), pDesc.getReadMethod().toString(), error);

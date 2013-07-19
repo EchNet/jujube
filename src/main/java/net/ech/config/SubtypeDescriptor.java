@@ -1,6 +1,5 @@
 package net.ech.config;
 
-import java.lang.reflect.*;
 import net.ech.doc.DocPredicate;
 
 /**

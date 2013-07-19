@@ -9,8 +9,13 @@ public class ConfigException
     extends IOException
 {
     /**
-     * Default constructor.
-     */
+	 * 
+	 */
+	private static final long	serialVersionUID	= -9070423860608788849L;
+
+	/**
+	 * Default constructor.
+	 */
     public ConfigException()
     {
     }

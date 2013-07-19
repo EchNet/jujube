@@ -7,6 +7,11 @@ import java.util.*;
  */
 public class Hash extends LinkedHashMap<String,Object>
 {
+	/**
+	 * 
+	 */
+	private static final long	serialVersionUID	= 798914374610344341L;
+
 	public Hash()
 	{
 	}

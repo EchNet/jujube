@@ -1,12 +1,6 @@
 package net.ech.util;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Set;
 
 public class TypeCoercionSupport

@@ -4,10 +4,8 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Set;
 
 class BeanPropertyMapSupport
 {
@@ -30,5 +28,11 @@ class BeanPropertyMapSupport
 	// For readability, plain and simple.
 	private static class PropertyDescriptorMap
 		extends HashMap<String,PropertyDescriptor> 
-	{}
+	{
+
+		/**
+		 * 
+		 */
+		private static final long	serialVersionUID	= -8579774545118932767L;
+	}
 }

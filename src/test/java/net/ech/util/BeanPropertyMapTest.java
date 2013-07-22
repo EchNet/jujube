@@ -33,7 +33,7 @@ public class BeanPropertyMapTest
 		}
 		catch (BeanException e) {
 			assertEquals(BeanType1.class, e.getBeanClass());
-			assertEquals("net.ech.util.BeanPropertyMapTest$BeanType1.d: no such property", e.getMessage());
+			assertEquals("net.ech.util.BeanPropertyMapTest$BeanType1.d: no set method", e.getMessage());
 		}
 	}
 

@@ -54,7 +54,7 @@ public class BeanPropertyMap
 		throws BeanException
 	{
 		if (!hasProperty(key)) {
-			throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + key + ": no such property");
+			throw new BeanException(getBeanClass(), getBeanClass().getName() + "." + key + ": no set method");
 		}
 	}
 

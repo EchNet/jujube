@@ -55,7 +55,7 @@ public class DocumentBasedConfiguratorTest
 	}
 
 	@Test
-	public void testSetBeanConstructorArg() throws Exception
+	public void testBeanConstructorSingleArg() throws Exception
 	{
 		Object bean = configure("thing", Object.class,
 			new Hash()
@@ -68,6 +68,20 @@ public class DocumentBasedConfiguratorTest
 		assertNotNull(bean);
 		assertTrue(bean instanceof SimpleConfigurable);
 		assertEquals("manilla", ((SimpleConfigurable) bean).getProperty());
+	}
+
+	@Test
+	public void testBeanConstructorListArg() throws Exception
+	{
+		Object bean = configure("thing", Object.class,
+			new Hash()
+				.addEntry("thing", new Hash()
+					.addEntry("__type", "net.ech.config.Bean")
+					.addEntry("__args", Arrays.asList(new Object[] { "hi", 256 }))));
+
+		assertNotNull(bean);
+		assertTrue(bean instanceof Bean);
+		assertEquals("hi", ((Bean) bean).getProperty());
 	}
 
 	@Test

@@ -184,7 +184,7 @@ public class DocumentBasedConfigurator
 				if (argsDoc.get(List.class) != null) {
 					List<Document> childDocs = argsDoc.children();
 					for (int i = 0; i < nParams; ++i) {
-						consParams[i] = materialize(childDocs.get(i), cons.getParameterTypes()[nParams]);
+						consParams[i] = materialize(childDocs.get(i), cons.getParameterTypes()[i]);
 					}
 				}
 				else if (!argsDoc.isNull()) {

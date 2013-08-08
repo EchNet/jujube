@@ -14,6 +14,7 @@ public class JsonDeserializer
 {
 	private JsonFactory jsonFactory;
 
+	@SuppressWarnings("serial")
 	public JsonDeserializer()
 	{
 		jsonFactory = new JsonFactory();

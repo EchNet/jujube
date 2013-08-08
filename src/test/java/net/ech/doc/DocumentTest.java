@@ -1,12 +1,10 @@
 package net.ech.doc;
 
-import java.io.*;
 import java.util.*;
 import net.ech.util.Hash;
 import org.junit.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -428,6 +426,7 @@ public class DocumentTest
 	{
 	}
 
+	@SuppressWarnings("unused")
 	private Hash hashTree(int depth)
 	{
 		Hash hash = new Hash();

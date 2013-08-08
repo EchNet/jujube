@@ -1,5 +1,8 @@
 *.swp
 *.log
+.classpath
+.project
+.settings/
 target/*
 hub.out
 src/main/resources/git.properties

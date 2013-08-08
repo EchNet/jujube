@@ -9,8 +9,13 @@ public class DocumentException
     extends IOException
 {
     /**
-     * Default constructor.
-     */
+	 * 
+	 */
+	private static final long	serialVersionUID	= -7635310109680458202L;
+
+	/**
+	 * Default constructor.
+	 */
     public DocumentException()
     {
     }

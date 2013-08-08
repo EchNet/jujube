@@ -1,7 +1,6 @@
 package net.ech.util;
 
 import java.util.Arrays;
-import java.util.List;
 
 class ListTypeCoercer
 	implements TypeCoercer

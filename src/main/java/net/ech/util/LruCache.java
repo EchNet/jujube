@@ -8,7 +8,11 @@ import java.util.*;
 public class LruCache<K,V>
 	extends LinkedHashMap<K,V>
 {
-	private int size;
+	/**
+	 * 
+	 */
+	private static final long	serialVersionUID	= 2092834793446869946L;
+	
 	private int sizeLimit;
 	private Sizer<V> sizer;
 
@@ -25,7 +29,6 @@ public class LruCache<K,V>
 	public LruCache(int sizeLimit, Sizer<V> sizer)
 	{
 		super(16, 0.75F, true);
-		this.size = 0;
 		this.sizeLimit = sizeLimit;
 		this.sizer = sizer;
 	}

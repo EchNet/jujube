@@ -198,7 +198,7 @@ public class TypeCoercionTest
 		List<String> original = Arrays.asList(new String[] { "do", "re", "mi", "fa", "so", "la", "ti", "do" });
 		Object coerced = TypeCoercionSupport.coerce(Set.class, original);
 		assertTrue(coerced instanceof Set);
-		assertEquals(7, ((Set) coerced).size());
-		assertTrue(((Set) coerced).contains("re"));
+		assertEquals(7, ((Set<?>) coerced).size());
+		assertTrue(((Set<?>) coerced).contains("re"));
 	}
 }

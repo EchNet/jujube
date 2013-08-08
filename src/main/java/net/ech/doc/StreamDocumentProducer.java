@@ -1,6 +1,5 @@
 package net.ech.doc;
 
-import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.IOException;
 

@@ -422,8 +422,21 @@ public class DocumentTest
 	}
 
 	@Test
-	public void testExtend() throws Exception
+	public void testExtendMapWithMap() throws Exception
 	{
+		Document doc1 = new Document(new Hash("a", "1").addEntry("b", "1"));
+		Document doc2 = new Document(new Hash("b", "2").addEntry("c", "2"));
+		Document docx = doc1.extend(doc2);
+		assertEquals(new Hash("a", "1").addEntry("b", "1").addEntry("c", "2"), docx.get());
+	}
+
+	@Test
+	public void testExtendListWithNothing() throws Exception
+	{
+		Document doc1 = new Document(new Hash());
+		Document doc2 = new Document(new Hash("a", Arrays.asList(new String[] { "1", "2", "3" })));
+		Document docx = doc1.extend(doc2);
+		assertEquals(new Hash("a", Arrays.asList(new String[] { "1", "2", "3" })), docx.get());
 	}
 
 	@SuppressWarnings("unused")

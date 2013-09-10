@@ -31,7 +31,7 @@ public class PrintExecutorTest
 			configure("thing");
 		}
 		catch (IOException e) {
-			assertEquals("resource:hello: .thing: child document not found", e.getMessage());
+			assertEquals("hello.json (resource:hello): .thing: child document not found", e.getMessage());
 		}
 	}
 

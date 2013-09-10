@@ -25,7 +25,7 @@ public class RelativeDocumentResolver
 
 	public RelativeDocumentResolver(String basePath, String extension)
 	{
-		this(new ExternalDocumentResolver(), basePath, extension);
+		this(new DefaultDocumentResolver(), basePath, extension);
 	}
 
 	public RelativeDocumentResolver(DocumentResolver inner, String basePath)
@@ -35,7 +35,7 @@ public class RelativeDocumentResolver
 
 	public RelativeDocumentResolver(DocumentResolver inner, String basePath, String extension)
 	{
-		super(inner == null ? new ExternalDocumentResolver() : inner);
+		super(inner == null ? new DefaultDocumentResolver() : inner);
 		setBasePath(basePath);
 		setExtension(extension);
 	}
@@ -56,6 +56,7 @@ public class RelativeDocumentResolver
 	/**
 	 * Add base path to the given key.
 	 */
+	@Override
 	protected String mutateDocumentKey(String key)
 	{
 		StringBuilder buf = new StringBuilder();

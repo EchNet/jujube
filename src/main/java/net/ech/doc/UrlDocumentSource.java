@@ -12,23 +12,24 @@ import java.net.HttpURLConnection;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 
-public class UrlDocumentProducer
-	extends StreamDocumentProducer
-	implements DocumentProducer
+public class UrlDocumentSource
+	implements DocumentSource
 {
-	public final static String JSON_CONTENT_TYPE = "application/json";
+	private URL url;
+	private URLConnection urlConnection;
+	private String mimeType;
 
-	public UrlDocumentProducer(String source)
+	public UrlDocumentSource(String key)
+		throws IOException
 	{
-		super(source);
+		this.url = new URL(key);
 	}
 
 	@Override
-	protected Reader openReader()
+	public Reader open()
 		throws IOException
 	{
-		URL url = new URL(getSource());
-		URLConnection urlConnection = url.openConnection();
+		urlConnection = url.openConnection();
 		urlConnection.setConnectTimeout(5000);
 		urlConnection.setReadTimeout(5000);
 		if (urlConnection instanceof HttpURLConnection) {
@@ -36,28 +37,25 @@ public class UrlDocumentProducer
 			switch (((HttpURLConnection) urlConnection).getResponseCode()) {
 			case 403:
 			case 404:
-				throw new FileNotFoundException(getSource());
+				throw new FileNotFoundException(toString());
 			}
 		}
 
-		String contentType = urlConnection.getContentType();
+		mimeType = urlConnection.getContentType();
 		String charSet = null;
-		if (contentType != null) {
-			StringTokenizer tokens = new StringTokenizer(contentType, ";");
+		if (mimeType != null) {
+			StringTokenizer tokens = new StringTokenizer(mimeType, ";");
 			for (int tx = 0; tokens.hasMoreTokens(); ++tx) { 
 				String token = tokens.nextToken().trim();
 				switch (tx) {
 				case 0: 
-					contentType = token;
+					mimeType = token;
 					break;
 				default:
 					if (token.startsWith("charset=")) {
 						charSet = token.substring(8);
 					}
 				}
-			}
-			if (!JSON_CONTENT_TYPE.equals(contentType)) {
-				throw new IOException(getSource() + ": expected JSON but found content type " + contentType);
 			}
 		}
 
@@ -67,5 +65,21 @@ public class UrlDocumentProducer
 			inputStream = new GZIPInputStream(inputStream);
 		}
 		return new BufferedReader(new InputStreamReader(inputStream, charSet == null ? "UTF-8" : charSet));
+	}
+
+	@Override
+	public String getMimeType()
+		throws IOException
+	{
+		if (urlConnection == null) {
+			throw new IllegalStateException();
+		}
+		return mimeType;
+	}
+
+	@Override
+	public String toString()
+	{
+		return url.toString();
 	}
 }

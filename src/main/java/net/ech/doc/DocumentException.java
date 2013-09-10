@@ -3,16 +3,13 @@ package net.ech.doc;
 import java.io.IOException;
 
 /**
- * Exception type that represents a failure to load or parse a document.
+ * Exception type that represents a failure to resolve or parse a document.  DocumentException extends
+ * {@link java.io.IOException} so that the latter may be declared as the general error type for the
+ * package.
  */
 public class DocumentException
-    extends IOException
+	extends IOException
 {
-    /**
-	 * 
-	 */
-	private static final long	serialVersionUID	= -7635310109680458202L;
-
 	/**
 	 * Default constructor.
 	 */

@@ -31,14 +31,6 @@ public class ResourceDocumentResolver
 	public DocumentProducer resolve(String key)
 		throws IOException
 	{
-		return new ResourceDocumentProducer("resource:" + key, appClass.getClassLoader(), addJsonExt(key));
-	}
-
-	private static String addJsonExt(String name)
-	{
-		if (!name.endsWith(".json")) {
-			name += ".json";
-		}
-		return name;
+		return new StreamDocumentProducer(new ResourceDocumentSource(key, appClass.getClassLoader()));
 	}
 }

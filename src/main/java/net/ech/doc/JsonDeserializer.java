@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * A really simple JSON deserializer based on Jackson.
  */
 public class JsonDeserializer
+	implements Deserializer
 {
 	private JsonFactory jsonFactory;
 
@@ -25,6 +26,13 @@ public class JsonDeserializer
 	}
 
 	public Object read(Reader input)
+		throws IOException
+	{
+		return deserialize(input);
+	}
+
+	@Override
+	public Object deserialize(Reader input)
 		throws IOException
 	{
 		return jsonFactory.createJsonParser(input).readValueAs(Object.class);

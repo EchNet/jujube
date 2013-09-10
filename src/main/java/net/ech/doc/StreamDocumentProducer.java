@@ -2,18 +2,19 @@ package net.ech.doc;
 
 import java.io.Reader;
 import java.io.IOException;
+import static net.ech.doc.DefaultDeserializerLogic.createDeserializer;
 
-abstract public class StreamDocumentProducer
+public class StreamDocumentProducer
 	implements DocumentProducer
 {
-	private String source;
+	private DocumentSource source;
 
-	public StreamDocumentProducer(String source)
+	public StreamDocumentProducer(DocumentSource source)
 	{
 		this.source = source;
 	}
 
-	public String getSource()
+	public DocumentSource getSource()
 	{
 		return source;
 	}
@@ -22,18 +23,18 @@ abstract public class StreamDocumentProducer
 	public Document produce()
 		throws IOException
 	{
-		Reader reader = openReader();
+		Reader reader = source.open();
 		try {
-			return new Document(SingletonJsonDeserializer.getInstance().read(reader), source);
+			Deserializer deserializer = createDeserializer(source);
+			try {
+				return new Document(deserializer.deserialize(reader), source.toString());
+			}
+			catch (IOException e) {
+				throw new IOException(source + ": deserialization error", e);
+			}
 		}
 		finally {
 			reader.close();
 		}
 	}
-
-	/**
-	 * Implement me.
-	 */
-	abstract protected Reader openReader()
-		throws IOException;
 }
